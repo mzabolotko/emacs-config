@@ -14,5 +14,11 @@
   (print requirements))
 (package-initialize)
 
+(mapc
+    (lambda (package)
+    (or (package-installed-p package)
+	(if (y-or-n-p (format "Package %s is missing. Install it? " package))
+	    (package-install package))))
+    '(fsharp-mode color-theme sunrise-commander dsvn magit))
 
 (provide 'config-elpa)
