@@ -28,3 +28,5 @@
 (require 'config-sunrise)
 (require 'config-color)
 (require 'config-fsharp)
+(require 'config-dsvn)
+(require 'config-yaml)
