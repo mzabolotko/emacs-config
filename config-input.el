@@ -1,8 +1,9 @@
 ;;------------------------------------------------------------------------------
 ;; set default font
 ;;------------------------------------------------------------------------------
-(if (find-font (font-spec :name "Monospace"))
-    (set-default-font "Manospace"))
+(if (find-font (font-spec :name "Ubuntu Mono"))
+;;    (set-default-font "Ubuntu Mono-12"))
+    (set-face-attribute 'default nil :font "Ubuntu Mono-12"))
 
 
 ;;------------------------------------------------------------------------------
