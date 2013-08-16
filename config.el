@@ -5,8 +5,6 @@
 ;; load the file with custom settings
 ;;------------------------------------------------------------------------------
 (setq custom-file "~/emacs-config/config-custom.el")
-(if (file-exists-p custom-file)
-  (load custom-file))
 
 
 ;;------------------------------------------------------------------------------
@@ -30,3 +28,7 @@
 (require 'config-fsharp)
 (require 'config-dsvn)
 (require 'config-yaml)
+(require 'config-org)
+
+(if (file-exists-p custom-file)
+    (load custom-file))

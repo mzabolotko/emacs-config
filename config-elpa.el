@@ -20,6 +20,6 @@
     (or (package-installed-p package)
 	(if (y-or-n-p (format "Package %s is missing. Install it? " package))
 	    (package-install package))))
-    '(fsharp-mode color-theme sunrise-commander dsvn magit yaml-mode csharp-mode sunrise-x-popviewer sunrise-x-modeline sunrise-x-tabs sunrise-x-w32-addons twittering-mode))
+    '(fsharp-mode color-theme sunrise-commander dsvn magit yaml-mode csharp-mode sunrise-x-popviewer sunrise-x-modeline sunrise-x-tabs sunrise-x-w32-addons))
 
 (provide 'config-elpa)
