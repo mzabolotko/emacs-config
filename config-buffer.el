@@ -1,7 +1,7 @@
 ;;------------------------------------------------------------------------------
 ;; enable line numbers
 ;;------------------------------------------------------------------------------
-(global-linum-mode t)
+;;(global-linum-mode t)
 
 
 ;;------------------------------------------------------------------------------
@@ -38,5 +38,22 @@
 ;;------------------------------------------------------------------------------
 (setq-default truncate-lines t)
 
+;;------------------------------------------------------------------------------
+;; getting rid of the “yes or no” prompt and replace it with “y or n”
+;;------------------------------------------------------------------------------
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;;------------------------------------------------------------------------------
+;; getting rid the annoying confirmation if a file or ddddddd dddd
+;; buffer does not exist when you use C-x C-f or C-x b.
+;; ------------------------------------------------------------------------------
+(setq confirm-nonexistent-file-or-buffer nil)
+
+;;------------------------------------------------------------------------------
+;; kill a buffer with a live process attached to it
+;;------------------------------------------------------------------------------
+(setq kill-buffer-query-functions
+  (remq 'process-kill-buffer-query-function
+         kill-buffer-query-functions))
 
 (provide 'config-buffer)

@@ -12,4 +12,10 @@
 ;;(setq ido-use-virtual-buffers t)
 
 
+;;------------------------------------------------------------------------------
+;; disabling the prompt to create a new buffer non-existent buffer
+;;------------------------------------------------------------------------------
+(setq ido-create-new-buffer 'always)
+
+
 (provide 'config-ido)

@@ -1,9 +1,13 @@
 ;;------------------------------------------------------------------------------
 ;; set default font
 ;;------------------------------------------------------------------------------
-(if (find-font (font-spec :name "Ubuntu Mono"))
+;; (if (find-font (font-spec :name "Ubuntu Mono"))
 ;;    (set-default-font "Ubuntu Mono-12"))
-    (set-face-attribute 'default nil :font "Ubuntu Mono-12"))
+;;    ;; (set-face-attribute 'default nil :font "Ubuntu Mono-14"))
+;; (if (find-font (font-spec :name "DejaVu LGC Sans Mono"))
+    ;; (set-face-attribute 'default nil :font "DejaVu LGC Sans Mono-12"))
+(if (find-font (font-spec :name "Fira Mono"))
+    (set-face-attribute 'default nil :font "Fira Mono-12"))
 
 
 ;;------------------------------------------------------------------------------

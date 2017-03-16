@@ -6,6 +6,8 @@
 ;;------------------------------------------------------------------------------
 (setq custom-file "~/emacs-config/config-custom.el")
 
+;;(setq package-enable-at-startup nil)
+;;(package-initialize)
 
 ;;------------------------------------------------------------------------------
 ;; start emacs as server to share settings through emacs clients.
@@ -20,15 +22,19 @@
 (require 'config-view)
 (require 'config-dired)
 (require 'config-xml)
+(require 'config-calendar)
 (require 'config-file)
 (require 'config-input)
 (require 'config-buffer)
-(require 'config-sunrise)
+;;(require 'config-sunrise)
 (require 'config-color)
 (require 'config-fsharp)
-(require 'config-dsvn)
-(require 'config-yaml)
+(require 'config-csharp)
+;;(require 'config-psvn)
+;;(require 'config-yaml)
 (require 'config-org)
+;;(require 'config-keys)
+(require 'config-spaceline)
 
 (if (file-exists-p custom-file)
     (load custom-file))
