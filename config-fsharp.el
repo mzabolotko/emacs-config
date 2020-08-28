@@ -1,9 +1,17 @@
+(require 'fsharp-mode)
+(require 'dotnet)
+(require 'company)
+(require 'eglot-fsharp)
 
-;;(setq auto-mode-alist (cons '("\\.fs[iylx]?$" . fsharp-mode) auto-mode-alist))
-;;(autoload 'fsharp-mode "fsharp" "Major mode for editing F# code." t)
-;;(autoload 'run-fsharp "inf-fsharp" "Run an inferior F# process." t)
+(setq inferior-fsharp-program "dotnet fsi")
+(setq-default fsharp-indent-offset 4)
 
-;;(setq inferior-fsharp-program "\"c:\\Program Files (x86)\\Microsoft SDKs\\F#\\4.1\\Framework\\v4.0\\Fsi.exe\"")
-;;(setq fsharp-compiler "\"c:\\Program Files (x86)\\Microsoft SDKs\\F#\\4.1\\Framework\\v4.0\\Fsc.exe\"")
+(add-hook 'fsharp-mode-hook 'dotnet-mode)
+(add-hook 'fsharp-mode-hook 'company-mode)
+
+(add-hook 'fsharp-mode-hook 'highlight-indent-guides-mode)
+(add-to-list 'auto-mode-alist '("\.fs[iylx]?$" . fsharp-mode))
+
+;;(setq inferior-fsharp-program "c:\\Users\\holod\\fsi.cmd")
 
 (provide 'config-fsharp)

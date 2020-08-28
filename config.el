@@ -1,10 +1,10 @@
-(add-to-list 'load-path (expand-file-name "~/emacs-config"))
+(add-to-list 'load-path (expand-file-name "~/.emacs-config"))
 
 ;;------------------------------------------------------------------------------
 ;; set the file name to store custom settings from the M-x customize command
 ;; load the file with custom settings
 ;;------------------------------------------------------------------------------
-(setq custom-file "~/emacs-config/config-custom.el")
+(setq custom-file "~/.emacs-config/config-custom.el")
 
 ;;(setq package-enable-at-startup nil)
 ;;(package-initialize)
@@ -17,7 +17,7 @@
   (server-start))
 
 (require 'config-elpa)
-(require 'config-frame)
+(require 'config-use-package)
 (require 'config-ido)
 (require 'config-view)
 (require 'config-dired)
@@ -26,15 +26,12 @@
 (require 'config-file)
 (require 'config-input)
 (require 'config-buffer)
-;;(require 'config-sunrise)
-(require 'config-color)
 (require 'config-fsharp)
 (require 'config-csharp)
-;;(require 'config-psvn)
-;;(require 'config-yaml)
 (require 'config-org)
-;;(require 'config-keys)
-(require 'config-spaceline)
+;;(require 'config-projectile)
+(require 'config-packages)
+
 
 (if (file-exists-p custom-file)
     (load custom-file))

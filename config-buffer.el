@@ -54,6 +54,12 @@
 ;;------------------------------------------------------------------------------
 (setq kill-buffer-query-functions
   (remq 'process-kill-buffer-query-function
-         kill-buffer-query-functions))
+        kill-buffer-query-functions))
+
+;;------------------------------------------------------------------------------
+;; Whether to add a newline automatically at the end of the file.
+;; A value of t means do this only when the file is about to be saved.
+;;------------------------------------------------------------------------------
+(setq require-final-newline t)
 
 (provide 'config-buffer)

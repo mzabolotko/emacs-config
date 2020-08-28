@@ -1,3 +1,6 @@
+(require 'package)
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+
 (require 'org)
 
 (setq org-agenda-prefix-format '((agenda . " %i %-12:c%?-12t% s")
@@ -6,9 +9,6 @@
 				 (tags . " %i %(concat \"[ \"(org-format-outline-path (org-get-outline-path)) \" ]\") ")
 				 (search . " %i %-12:c")))
 
-;; setup in cusom file (http://eschulte.github.io/babel-dev/DONE-integrate-plantuml-support.html):
-;; (setq org-plantuml-jar-path
-;;      (expand-file-name "~/src/org/contrib/scripts/plantuml.jar"))
 (org-babel-do-load-languages
     'org-babel-load-languages
     '((plantuml . t)))
