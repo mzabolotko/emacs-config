@@ -12,6 +12,7 @@ which is unsafe because it allows man-in-the-middle attacks.
 There are two things you can do about this warning:
 1. Install an Emacs version that does support SSL and be safe.
 2. Remove this warning from your init file so you won't see it again."))
+  (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
   (add-to-list 'package-archives
 	       '("melpa-stable" . "https://stable.melpa.org/packages/") t)
   (add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)

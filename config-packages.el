@@ -85,6 +85,42 @@
   :hook
   (prog-mode . display-line-numbers-mode))
 
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind (("C-x C-j" . dired-jump))
+  :custom ((dired-listing-switches "-agho --si --group-directories-first --time-style=long-iso"))
+  :config
+;;------------------------------------------------------------------------------
+;; setup default open action for specific extensions
+;;------------------------------------------------------------------------------
+  (setq dired-guess-shell-alist-user
+    (list
+      (list "\\.html" "explorer.exe")
+      (list "\\.archimate" "explorer.exe")
+      (list "\\.sln" "explorer.exe")
+      (list "\\.zip" "7z x")))
+;;------------------------------------------------------------------------------
+;; dired search only by file names
+;;------------------------------------------------------------------------------
+  (setq dired-isearch-filenames t)
+;;------------------------------------------------------------------------------
+;; Whether Dired deletes directories recursively.
+;; If nil, Dired will not delete non-empty directories.
+;; `always' means to delete non-empty directories recursively,
+;; without asking.  This is dangerous!
+;;------------------------------------------------------------------------------
+  (setq dired-recursive-deletes 'always)
+
+  (use-package dired-single))
+
+;;------------------------------------------------------------------------------
+;; Hides dotfiles by default.
+;;------------------------------------------------------------------------------
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :bind (("C-x H" . dired-hide-dotfiles-mode)))
+
 (use-package all-the-icons-dired
   :init
   (add-to-list 'all-the-icons-icon-alist
@@ -92,6 +128,12 @@
                  :face all-the-icons-blue))
   (add-to-list 'all-the-icons-icon-alist
                '("\\.srt" all-the-icons-octicon "file-text"
+                 :v-adjust 0.0 :face all-the-icons-dcyan))
+  (add-to-list 'all-the-icons-icon-alist
+               '("\\.fsx" all-the-icons-alltheicon "haskell"
+                 :v-adjust 0.0 :face all-the-icons-dcyan))
+  (add-to-list 'all-the-icons-icon-alist
+               '("\\.fs" all-the-icons-alltheicon "haskell"
                  :v-adjust 0.0 :face all-the-icons-dcyan))
   :config
   ;; Turn off all-the-icons-dired-mode before wdired-mode
@@ -212,18 +254,40 @@
   :bind
   (
     :map projectile-mode-map
-	("C-c C-e" . projectile-command-map)
 	("C-c p" . projectile-command-map))
   :config
   (require 'tramp)
   (projectile-mode +1))
 
 (use-package eglot
-  :commands eglot
+  :commands (eglot eglot-ensure)
   :init
   (load-library "project")  ; TEMP: https://github.com/raxod502/straight.el/issues/531
   :custom
   (eglot-autoshutdown t))
+  ;; :config
+  ;; (progn
+  ;;   (add-to-list 'eglot-server-programs
+  ;;                '(csharp-mode . ("/home/nop/Downloads/omni/omnisharp/OmniSharp.exe" "-lsp")))))
+
+(use-package kotlin-mode)
+
+(use-package lsp-mode
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :hook (
+         (kotlin-mode . lsp)
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
+
+;; (use-package lsp-mode
+;;   :commands (lsp lsp-deffered)
+;;   :hook (kotlin-mode . lsp)
+;;   :init
+;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+;;   (setq lsp-keymap-prefix "C-c l")
+;;   :config
+;;   (lsp-enable-which-key-integration t))
 
 (use-package eldoc-box
   :after eglot
@@ -269,6 +333,77 @@
 
 (use-package zone
   :config
-    (zone-when-idle 15))
+  (zone-when-idle 600))
+
+(use-package ligature
+  :load-path "../.emacs-config/"
+  :config
+  ;; Enable the "www" ligature in every possible major mode
+  ;;(ligature-set-ligatures 't '("www"))
+  ;; Enable traditional ligature support in eww-mode, if the
+  ;; `variable-pitch' face supports it
+  (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+  ;; Enable all Cascadia Code ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+                                       "\\" "://"))
+  ;; Enables ligature checks globally in all buffers. You can also do it
+  ;; per mode with `ligature-mode'.
+  (global-ligature-mode t))
+
+(eval-and-compile
+  (defun site-list-mu4e ()
+    "/usr/share/emacs/site-lisp/mu4e/"))
+
+
+(use-package mu4e
+  :ensure nil
+  :load-path "/usr/share/emacs/site-lisp/mu4e/"
+  :load-path (lambda () (list (site-list-mu4e)))
+  ;; :defer 20 ; Wait until 20 seconds after startup
+  :config
+
+  ;; This is set to 't' to avoid mail syncing issues when using mbsync
+  (setq mu4e-change-filenames-when-moving t)
+
+  ;; Refresh mail using isync every 10 minutes
+  (setq mu4e-update-interval (* 10 60))
+  (setq mu4e-get-mail-command "mbsync -a")
+  (setq mu4e-maildir "~/Mail")
+
+  (setq mu4e-drafts-folder "/[Gmail]/Drafts")
+  (setq mu4e-sent-folder   "/[Gmail]/Sent Mail")
+  (setq mu4e-refile-folder "/[Gmail]/All Mail")
+  (setq mu4e-trash-folder  "/[Gmail]/Trash"))
+
+  ;; (setq mu4e-drafts-folder "/[Gmail].Drafts")
+  ;; (setq mu4e-sent-folder   "/[Gmail].Sent Mail")
+  ;; (setq mu4e-refile-folder "/[Gmail].All Mail")
+  ;; (setq mu4e-trash-folder  "/[Gmail].Trash"))
+
+  ;; (setq mu4e-maildir-shortcuts
+  ;;     '(("/Inbox"             . ?i)
+  ;;       ("/[Gmail]/Sent Mail" . ?s)
+  ;;       ("/[Gmail]/Trash"     . ?t)
+  ;;       ("/[Gmail]/Drafts"    . ?d)
+  ;;       ("/[Gmail]/All Mail"  . ?a))))
+
+(use-package feature-mode
+  :ensure t
+  :init
+  (setq feature-default-i18n-file "~/.emacs-config/feature-i18n.yml"))
+
+(use-package tj3-mode
+  :ensure t)
 
 (provide 'config-packages)

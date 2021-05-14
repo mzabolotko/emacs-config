@@ -1,7 +1,7 @@
 (require 'package)
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 
 (require 'org)
+(require 'ox-taskjuggler)
 
 (setq org-agenda-prefix-format '((agenda . " %i %-12:c%?-12t% s")
 				 (timeline . "  % s")
