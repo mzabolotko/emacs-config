@@ -1,7 +1,13 @@
-;; inspired by https://github.com/KaratasFurkan/.emacs.d#package-management
+;; inspired by
+;; https://github.com/KaratasFurkan/.emacs.d#package-management
+;; https://github.com/daviwil/dotfiles/blob/master/Emacs.org
 
 (use-package esup
   :commands esup)
+
+(setq mz/settings-use-postframe nil)
+
+(use-package diminish)
 
 (use-package helpful
   :bind
@@ -11,15 +17,24 @@
    :map emacs-lisp-mode-map
    ("C-c C-d" . helpful-at-point)))
 
+;; https://github.com/hlissner/emacs-doom-themes
+;; https://github.com/hlissner/emacs-doom-themes/tree/screenshots
+(use-package spacegray-theme
+  :defer t)
+
 (use-package doom-themes
   :custom
   (doom-modeline-major-mode-color-icon t)
   :config
-  (load-theme 'doom-spacegrey t))
+  (load-theme 'doom-palenight t))
+;;  (load-theme 'doom-spacegrey t))
+
+(use-package minions
+  :hook (doom-modeline-mode . minions-mode))
 
 (use-package doom-modeline
   :custom
-  (doom-modeline-buffer-encoding nil)
+  (doom-modeline-buffer-encoding t)
   (doom-modeline-vcs-max-length 20)
   :custom-face
   (mode-line-highlight ((t (:inherit doom-modeline-bar :foreground "black"))))
@@ -30,6 +45,7 @@
 
 (use-package anzu
   :after isearch
+  :disabled				; using ivy + swiper
   :config
   (global-anzu-mode))
 
@@ -81,25 +97,16 @@
   (dashboard-mode . (lambda () (setq cursor-type nil)))
   (dashboard-mode . (lambda () (face-remap-add-relative 'hl-line :weight 'bold))))
 
-(use-package display-line-numbers
-  :hook
-  (prog-mode . display-line-numbers-mode))
+(use-package display-line-numbers)
+
 
 (use-package dired
   :ensure nil
+  ;; :defer 1
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
   :custom ((dired-listing-switches "-agho --si --group-directories-first --time-style=long-iso"))
   :config
-;;------------------------------------------------------------------------------
-;; setup default open action for specific extensions
-;;------------------------------------------------------------------------------
-  (setq dired-guess-shell-alist-user
-    (list
-      (list "\\.html" "explorer.exe")
-      (list "\\.archimate" "explorer.exe")
-      (list "\\.sln" "explorer.exe")
-      (list "\\.zip" "7z x")))
 ;;------------------------------------------------------------------------------
 ;; dired search only by file names
 ;;------------------------------------------------------------------------------
@@ -112,7 +119,51 @@
 ;;------------------------------------------------------------------------------
   (setq dired-recursive-deletes 'always)
 
-  (use-package dired-single))
+  (add-hook 'dired-load-hook
+          (lambda ()
+            (load "dired-x")))
+  (add-hook 'dired-mode-hook
+          (lambda ()))
+
+  (add-hook 'dired-load-hook
+          (lambda ()
+            (interactive)
+            (dired-collapse))))
+
+(use-package dired-rainbow
+  :config
+  (progn
+    (message "worked")
+    (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+    (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+    (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
+    (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+    (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+    (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+    (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+    (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+    (dired-rainbow-define log "#c17d11" ("log"))
+    (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
+    (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
+    (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
+    (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+    (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+    (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+    (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
+    (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+    (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+    (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+    (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")
+    ))
+
+(use-package dired-single
+  :defer t)
+
+(use-package dired-ranger
+  :defer t)
+
+(use-package dired-collapse
+  :defer t)
 
 ;;------------------------------------------------------------------------------
 ;; Hides dotfiles by default.
@@ -143,6 +194,53 @@
     (all-the-icons-dired-mode 1))
   :hook (dired-mode . all-the-icons-dired-mode))
 
+(defun mz/openwith-open-wsl (command arglist)
+  (let ((shell-file-name "/bin/sh"))
+    (if (string= command "explorer.exe")
+	(progn
+	  (message "use explorer.exe")
+	  (let* ((full-path (car arglist))
+		 (directory (shell-quote-argument (file-name-directory full-path)))
+		 (file-name (shell-quote-argument (file-name-nondirectory full-path)))
+	         (command (concat "cd " directory " ; " command " " file-name " > /dev/null")))
+		    ;; (message command)))
+		    (start-process-shell-command "openwith-process" nil command)))
+        (progn
+	  (message "don't use explorer.exe")
+	  (start-process-shell-command
+	   "openwith-process" nil
+	   (concat
+            "exec nohup " command " "
+            (mapconcat 'shell-quote-argument arglist " ")
+            " >/dev/null"))))))
+
+(defun mz/get-proc-version ()
+  (let ((shell-file-name "/bin/sh")
+        (command "cat /proc/version"))
+    (shell-command-to-string command)))
+
+(defun mz/check-wsl-p ()
+  (if (string-match-p (regexp-quote "microsoft") (mz/get-proc-version))
+    't
+    nil))
+
+(use-package openwith
+  :if (mz/check-wsl-p)
+  :config
+  (setq openwith-associations
+        (list
+          (list (openwith-make-extension-regexp
+                '("docx"))
+                "explorer.exe"
+                '(file))
+	  (list (openwith-make-extension-regexp
+                '("archimate"))
+                "explorer.exe"
+                '(file))))
+  (openwith-mode 1)
+  :init
+  (advice-add 'openwith-open-unix :override 'mz/openwith-open-wsl))
+
 (use-package rainbow-delimiters
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -155,47 +253,22 @@
 (use-package emojify
   :commands emojify-mode)
 
+(use-package which-key
+  :if (not mz/settings-use-postframe)
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 0.3))
+
 (use-package which-key-posframe
+  :if mz/settings-use-postframe
   :custom
-  (which-key-idle-secondary-delay 0)
+  (which-key-idle-secondary-delay 0.3)
   :custom-face
   (which-key-posframe-border ((t (:background "gray"))))
   :config
   (which-key-mode)
   (which-key-posframe-mode))
-
-(use-package helm
-  :defer nil
-  :custom
-  (helm-M-x-always-save-history t)
-  (helm-display-function 'pop-to-buffer)
-  (savehist-additional-variables '(extended-command-history))
-  (history-delete-duplicates t)
-  :custom-face
-  (helm-non-file-buffer ((t (:inherit font-lock-comment-face))))
-  (helm-ff-file-extension ((t (:inherit default))))
-  (helm-buffer-file ((t (:inherit default))))
-  :config
-  ;; (helm-mode)
-  (savehist-mode))
-
-(use-package helm-projectile
-  ;; :bind
-  ;; ("C-x f" . helm-projectile)
-  :hook
-  (projectile-mode . helm-projectile-on))
-
-(use-package helm-descbinds
-  :commands helm-descbinds)
-
-(use-package helm-posframe
-  :after helm
-  :custom
-  (helm-posframe-border-color "gray")
-  (helm-posframe-parameters '((left-fringe . 5)
-                              (right-fringe . 5)))
-  :config
-  (helm-posframe-enable))
 
 (use-package company
   :defer nil
@@ -213,8 +286,8 @@
    ("C-s" . company-complete-selection)  ; Mostly to use during yasnippet expansion
    ("C-n" . company-select-next)
    ("C-p" . company-select-previous))
-  :config
-  (global-company-mode))
+  :hook
+  (prog-mode . company-mode))
 
 (use-package json-mode
   :defer t)
@@ -247,17 +320,35 @@
 (use-package treemacs-projectile
   :after treemacs projectile)
 
+
+
 (use-package projectile
   :custom
   (projectile-auto-discover nil)
-  (projectile-project-search-path (f-directories "~/development"))
-  :bind
-  (
-    :map projectile-mode-map
-	("C-c p" . projectile-command-map))
+  (projectile-project-search-path
+   (append
+    (f-directories "~/development/github")
+    (f-directories "~/development/learn")
+    (f-directories "~/development/pets")
+    (f-directories "/mnt/d/development/learn")
+    (f-directories "/mnt/d/development/pets")))
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :demand t
+  :init
+  (setq projectile-switch-project-action #'projectile-dired)
+  :bind-keymap ("C-c p" . projectile-command-map))
+
+(use-package counsel-projectile
+  :after projectile
   :config
-  (require 'tramp)
-  (projectile-mode +1))
+  ;; change the default action - to open a directory of the project
+  (counsel-projectile-modify-action
+    'counsel-projectile-switch-project-action
+    '((move counsel-projectile-switch-project-action-dired 1)
+      (setkey counsel-projectile-switch-project-action-dired "o")
+      (setkey counsel-projectile-switch-project-action " ")))
+  (counsel-projectile-mode))
 
 (use-package eglot
   :commands (eglot eglot-ensure)
@@ -307,11 +398,17 @@
 (use-package magit
   :commands magit)
 
-(use-package vterm)
+(use-package vterm
+  :commands vterm
+  :config
+  (setq vterm-max-scrollback 10000))
 
 (use-package markdown-mode
   :mode "\\.md\\'"
   :custom (markdown-header-scaling t))
+
+(use-package docker
+  :commands docker)
 
 (use-package dockerfile-mode
   :mode "Dockerfile\\'")
@@ -320,10 +417,10 @@
   :mode "docker-compose\\'")
 
 (use-package yaml-mode
-  :mode "\\.yaml\\'"
-  :hook
-  (yaml-mode . highlight-indent-guides-mode)
-  (yaml-mode . display-line-numbers-mode))
+  :mode "\\.yaml\\'")
+
+(use-package origami
+  :hook (yaml-mode . origami-mode))
 
 (use-package fireplace
   :commands fireplace)
@@ -405,5 +502,161 @@
 
 (use-package tj3-mode
   :ensure t)
+
+(use-package kubel)
+
+;; displaying World Time
+(setq display-time-world-list
+  '(("Etc/UTC" "UTC")
+    ("EDT" "Georgia")
+    ("Europe/Moscow" "Moscow")))
+(setq display-time-world-time-format "%Z\t%a %d %b %R")
+
+;; Set default connection mode to SSH
+(setq tramp-default-method "ssh")
+
+(use-package ivy
+  :diminish
+  :init
+  (ivy-mode 1)
+  :config
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-wrap t)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq enable-recursive-minibuffers t)
+
+  (global-set-key (kbd "C-s") 'swiper-isearch)
+  (global-set-key (kbd "M-x") 'counsel-M-x)
+  (global-set-key (kbd "C-x b") 'ivy-switch-buffer)
+  (global-set-key (kbd "C-c k") 'counsel-rg)
+
+  ;; Use different regex strategies per completion command
+  ;; (push '(completion-at-point . ivy--regex-fuzzy) ivy-re-builders-alist) ;; This doesn't seem to work...
+  ;; (push '(swiper . ivy--regex-ignore-order) ivy-re-builders-alist)
+  ;; (push '(counsel-M-x . ivy--regex-ignore-order) ivy-re-builders-alist)
+
+  ;; Set minibuffer height for different commands
+  (setf (alist-get 'counsel-projectile-ag ivy-height-alist) 15)
+  (setf (alist-get 'counsel-projectile-rg ivy-height-alist) 15)
+  (setf (alist-get 'swiper ivy-height-alist) 15)
+  (setf (alist-get 'counsel-switch-buffer ivy-height-alist) 7))
+
+(use-package ivy-hydra
+  :defer t
+  :after hydra)
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1)
+  :after counsel)
+
+(use-package flx  ;; Improves sorting for fuzzy-matched results
+  :after ivy
+  :defer t
+  :init
+  (setq ivy-flx-limit 10000))
+
+(use-package prescient
+  :after counsel
+  :config
+  (prescient-persist-mode 1))
+
+(use-package ivy-prescient
+  :after prescient
+  :config
+  (ivy-prescient-mode 1))
+
+;; helps with easily switching between windows based on a predefined set of keys used to identify each.
+(use-package ace-window
+  :bind (("M-o" . ace-window))
+  :custom
+  (aw-scope 'frame)
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-minibuffer-flag t)
+  :config
+  (ace-window-display-mode 1))
+
+(defun mz/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (auto-fill-mode 0)
+  (visual-line-mode 1)
+  (diminish org-indent-mode)
+  (global-linum-mode 0)
+  (linum-mode 0))
+
+(use-package org
+  :defer t
+  :hook (org-mode . mz/org-mode-setup)
+  :config
+
+  (setq org-ellipsis " ▾"
+	org-hide-emphasis-markers t
+	org-src-fontify-natively t
+        org-fontify-quote-and-verse-blocks t
+        org-src-tab-acts-natively t
+        org-edit-src-content-indentation 2
+        org-hide-block-startup nil
+        org-src-preserve-indentation nil
+        org-startup-folded 'content
+        org-cycle-separator-lines 2)
+
+  (setq org-agenda-prefix-format '((agenda . " %i %-12:c%?-12t% s")
+				 (timeline . "  % s")
+				 (todo . " %i %(concat \"[ \"(org-format-outline-path (org-get-outline-path)) \" ]\") ")
+				 (tags . " %i %(concat \"[ \"(org-format-outline-path (org-get-outline-path)) \" ]\") ")
+				 (search . " %i %-12:c")))
+
+  (global-set-key "\C-cl" 'org-store-link)
+  (global-set-key "\C-cc" 'org-capture)
+  (global-set-key "\C-ca" 'org-agenda)
+  (global-set-key "\C-cb" 'forg-iswitchb)
+
+  (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+
+  (setq org-agenda-custom-commands
+    '(("D" "Day agenda"
+	((agenda "" ((org-agenda-ndays 1))) ;; limits the agenda display to a single day
+	    (todo "IN-PROGRESS")
+	    (todo "NEXT")
+	    (todo "WAITING"))
+	    ((org-agenda-compact-blocks t)))
+      ("W" "Day agenda"
+	((agenda "" ((org-agenda-ndays 7))) ;; limits the agenda display to a single day
+	    (todo "WAITING"))
+	    ((org-agenda-compact-blocks t)))) ;; options set here apply to the entire block
+	)
+
+  (require 'org-indent)
+
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+
+  (setq org-todo-repeat-to-state "REPEATING")
+  (setq org-refile-targets (quote ((nil :maxlevel . 9)
+                                   (org-agenda-files :maxlevel . 9))))
+
+  (setq org-agenda-include-diary t)
+  (setq org-agenda-skip-deadline-if-done t)
+  (setq org-agenda-skip-scheduled-if-done t)
+  (setq org-agenda-start-on-weekday nil))
+
+(use-package daemons
+  :commands daemons)
+
+(use-package proced
+  :commands proced
+  :config
+  (setq proced-auto-update-interval 1)
+  (add-hook 'proced-mode-hook
+            (lambda ()
+              (proced-toggle-auto-update 1))))
 
 (provide 'config-packages)

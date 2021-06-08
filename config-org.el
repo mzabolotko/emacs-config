@@ -34,11 +34,25 @@
 	)
 
 (defun nolinum ()
+  (auto-fill-mode 0)
+  (visual-line-mode 1)
   (global-linum-mode 0)
+  (variable-pitch-mode 1)
   (linum-mode 0)
 )
 (add-hook 'org-mode-hook 'nolinum)
 
+(require 'org-indent)
+
+(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
+(set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+(set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
 
 (setq org-todo-repeat-to-state "REPEATING")
 (setq org-refile-targets (quote ((nil :maxlevel . 9)
@@ -48,5 +62,6 @@
 (setq org-agenda-skip-deadline-if-done t)
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-start-on-weekday nil)
+
 
 (provide 'config-org)
