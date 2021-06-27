@@ -18,9 +18,7 @@
 
 (require 'config-elpa)
 (require 'config-use-package)
-;; (require 'config-ido)
 (require 'config-view)
-;; (require 'config-dired)
 (require 'config-xml)
 (require 'config-calendar)
 (require 'config-file)
@@ -28,7 +26,6 @@
 (require 'config-buffer)
 ;; (require 'config-fsharp)
 ;; (require 'config-csharp)
-;; (require 'config-org)
 (require 'config-packages)
 
 
