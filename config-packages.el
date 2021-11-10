@@ -32,7 +32,7 @@
   :defer t)
 
 (use-package doom-themes :defer t)
-  ;; :ensure t
+  ;; :straight t
   ;; :config
   ;; ;; Global settings (defaults)
   ;; (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -72,6 +72,7 @@
   (column-number-mode)
   (doom-modeline-mode))
 
+;; TODO
 (use-package anzu
   :after isearch
   :disabled				; using ivy + swiper
@@ -129,7 +130,7 @@
 (use-package display-line-numbers)
 
 (use-package dired
-  :ensure nil
+  :straight nil
   ;; :defer 1
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
@@ -270,7 +271,7 @@
   (advice-add 'openwith-open-unix :override 'mz/openwith-open-wsl))
 
 (use-package rainbow-delimiters
-  :ensure t
+  :straight t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package emojify
@@ -382,15 +383,15 @@
   (savehist-mode 1))
 
 (use-package yasnippet :config (yas-global-mode))
-(use-package yasnippet-snippets :ensure t)
+(use-package yasnippet-snippets :straight t)
 
 (use-package lsp-treemacs
   :after (lsp-mode treemacs)
-  :ensure t
+  :straight t
   :commands lsp-treemacs-errors-list)
 
 (use-package lsp-ui
-  :ensure t
+  :straight t
   :after (lsp-mode)
   :bind (:map lsp-ui-mode-map
          ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
@@ -400,7 +401,7 @@
       lsp-ui-doc-max-width 100))
 
 (use-package dap-mode
-  :ensure t
+  :straight t
   :after (lsp-mode)
   :functions dap-hydra/nil
   :config
@@ -412,7 +413,7 @@
     (dap-session-created . (lambda (&_rest) (dap-hydra)))
     (dap-terminated . (lambda (&_rest) (dap-hydra/nil)))))
 
-(use-package dap-java :ensure nil)
+;; (use-package dap-java :straight nil)
 
 (use-package elixir-mode
   :config
@@ -422,7 +423,7 @@
           (lambda () (add-hook 'before-save-hook 'elixir-format nil t))))
 
 (use-package lsp-mode
-  :ensure t
+  :straight t
   :init
   (setq lsp-keymap-prefix "C-c l"
 	lsp-enable-file-watchers nil
@@ -445,18 +446,18 @@
 
 ;; See https://github.com/neppramod/java_emacs/blob/master/emacs-configuration.org
 (use-package lsp-java
-  :ensure t
+  :straight t
   :config
   (add-hook 'java-mode-hook 'lsp))
 
 (use-package fsharp-mode
   :defer t
-  :ensure t
+  :straight t
   :config
   (setq-default fsharp-indent-offset 4))
 
 (use-package eglot-fsharp
-  :ensure t)
+  :straight t)
 
 (use-package eldoc-box
   :after eglot
@@ -542,7 +543,7 @@
     "/usr/share/emacs/site-lisp/mu4e/"))
 
 (use-package mu4e
-  :ensure nil
+  :straight nil
   :load-path "/usr/share/emacs/site-lisp/mu4e/"
   :load-path (lambda () (list (site-list-mu4e)))
   ;; :defer 20 ; Wait until 20 seconds after startup
@@ -574,12 +575,12 @@
 ;;       ("/[Gmail]/All Mail"  . ?a))))
 
 (use-package feature-mode
-  :ensure t
+  :straight t
   :init
   (setq feature-default-i18n-file "~/.emacs-config/feature-i18n.yml"))
 
 (use-package tj3-mode
-  :ensure t)
+  :straight t)
 
 (use-package kubel)
 
@@ -849,7 +850,7 @@ it can be passed in POS."
   (setq org-agenda-start-on-weekday nil))
 
 (use-package org-roam
-  :ensure t
+  :straight t
   :init
   (setq org-roam-v2-ack t)
   :custom
@@ -869,22 +870,23 @@ it can be passed in POS."
   (org-roam-setup))
 
 ;; TODO: replace with use-package + straight
-(add-to-list 'load-path "~/.emacs.d/private/org-roam-ui")
-(load-library "org-roam-ui")
-(setq org-roam-ui-sync-theme t
-      org-roam-ui-follow t
-      org-roam-ui-update-on-save t
-      org-roam-ui-open-on-start t)
+;; (add-to-list 'load-path "~/.emacs.d/private/org-roam-ui")
+;; (load-library "org-roam-ui")
+;; (setq org-roam-ui-sync-theme t
+;;       org-roam-ui-follow t
+;;       org-roam-ui-update-on-save t
+;;       org-roam-ui-open-on-start t
 
 (setq ispell-program-name "/usr/bin/hunspell")
 
+;; TODO: enable use-package + straight
 ;; use M-x org-ref-help for help.
-(use-package org-ref
-  :init
-  (setq reftex-default-bibliography "~/Documents/org/Documents/bibliography/references.bib"
-	org-ref-default-bibliography '("~/Documents/org/Documents/bibliography/references.bib")
-	org-ref-completion-library 'org-ref-ivy-cite
-	org-ref-pdf-directory "~/Documents/org/Documents/bibliography/bibtex-pdfs/"))
+;; (use-package org-ref
+;;   :init
+;;   (setq reftex-default-bibliography "~/Documents/org/Documents/bibliography/references.bib"
+;; 	org-ref-default-bibliography '("~/Documents/org/Documents/bibliography/references.bib")
+;; 	org-ref-completion-library 'org-ref-ivy-cite
+;; 	org-ref-pdf-directory "~/Documents/org/Documents/bibliography/bibtex-pdfs/"))
 
 (use-package org-roam-bibtex
   :after org-roam
