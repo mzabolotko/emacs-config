@@ -31,24 +31,24 @@
 (use-package spacegray-theme
   :defer t)
 
-(use-package doom-themes
-  :ensure t
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-opera-light t)   ;
-  ;; (load-theme 'doom-one t)
+(use-package doom-themes :defer t)
+  ;; :ensure t
+  ;; :config
+  ;; ;; Global settings (defaults)
+  ;; (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+  ;;       doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  ;; (load-theme 'doom-opera-light t)   ;
+  ;; ;; (load-theme 'doom-one t)
 
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; or for treemacs users
-  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  (doom-themes-treemacs-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+  ;; ;; Enable flashing mode-line on errors
+  ;; (doom-themes-visual-bell-config)
+  ;; ;; Enable custom neotree theme (all-the-icons must be installed!)
+  ;; (doom-themes-neotree-config)
+  ;; ;; or for treemacs users
+  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  ;; (doom-themes-treemacs-config)
+  ;; ;; Corrects (and improves) org-mode's native fontification.
+  ;; (doom-themes-org-config))
 
 (use-package theme-changer
   :config
@@ -61,6 +61,8 @@
 
 (use-package doom-modeline
   :custom
+  (doom-modeline-height 20)
+  (doom-modeline-buffer-file-name-style 'truncate-all)
   (doom-modeline-buffer-encoding t)
   (doom-modeline-vcs-max-length 20)
   :custom-face
@@ -125,7 +127,6 @@
   (dashboard-mode . (lambda () (face-remap-add-relative 'hl-line :weight 'bold))))
 
 (use-package display-line-numbers)
-
 
 (use-package dired
   :ensure nil
@@ -272,11 +273,6 @@
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package helm-icons
-  :after helm
-  :config
-  (helm-icons-enable))
-
 (use-package emojify
   :commands emojify-mode)
 
@@ -330,11 +326,16 @@
    :map deadgrep-mode-map
 	("C-c C-e" . deadgrep-edit-mode)))
 
+(use-package treemacs-all-the-icons
+  :after all-the-icons
+  )
+
 (use-package treemacs
+  :after (treemacs-all-the-icons lsp-mode)
   :custom
   (treemacs-width 20)
-  :bind
-  ("M-0" . treemacs-select-window)
+  ;; :bind
+  ;; ("M-0" . treemacs-select-window)
   :hook
   (treemacs-mode . (lambda ()
                      (let* ((project-path (projectile-project-root))
@@ -345,9 +346,7 @@
                    (face-remap-add-relative 'default :height .75))))
 
 (use-package treemacs-projectile
-  :after treemacs projectile)
-
-
+  :after (treemacs projectile))
 
 (use-package projectile
   :custom
@@ -382,35 +381,82 @@
   (setq history-length 25)
   (savehist-mode 1))
 
-(use-package eglot
-  :commands (eglot eglot-ensure)
-  :init
-  (load-library "project")  ; TEMP: https://github.com/raxod502/straight.el/issues/531
-  :custom
-  (eglot-autoshutdown t))
-  ;; :config
-  ;; (progn
-  ;;   (add-to-list 'eglot-server-programs
-  ;;                '(csharp-mode . ("/home/nop/Downloads/omni/omnisharp/OmniSharp.exe" "-lsp")))))
+(use-package yasnippet :config (yas-global-mode))
+(use-package yasnippet-snippets :ensure t)
 
-(use-package kotlin-mode)
+(use-package lsp-treemacs
+  :after (lsp-mode treemacs)
+  :ensure t
+  :commands lsp-treemacs-errors-list)
+
+(use-package lsp-ui
+  :ensure t
+  :after (lsp-mode)
+  :bind (:map lsp-ui-mode-map
+         ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+         ([remap xref-find-references] . lsp-ui-peek-find-references))
+  :init (setq lsp-ui-doc-delay 1.5
+      lsp-ui-doc-position 'bottom
+      lsp-ui-doc-max-width 100))
+
+(use-package dap-mode
+  :ensure t
+  :after (lsp-mode)
+  :functions dap-hydra/nil
+  :config
+  (require 'dap-java)
+  :bind (:map lsp-mode-map
+         ("<f5>" . dap-debug)
+         ("M-<f5>" . dap-hydra))
+  :hook ((dap-mode . dap-ui-mode)
+    (dap-session-created . (lambda (&_rest) (dap-hydra)))
+    (dap-terminated . (lambda (&_rest) (dap-hydra/nil)))))
+
+(use-package dap-java :ensure nil)
+
+(use-package elixir-mode
+  :config
+  (add-hook 'elixir-mode-hook 'mix-minor-mode)
+;; Create a buffer-local hook to run elixir-format on save, only when we enable elixir-mode.
+  (add-hook 'elixir-mode-hook
+          (lambda () (add-hook 'before-save-hook 'elixir-format nil t))))
 
 (use-package lsp-mode
+  :ensure t
   :init
-  (setq lsp-keymap-prefix "C-c l")
+  (setq lsp-keymap-prefix "C-c l"
+	lsp-enable-file-watchers nil
+        read-process-output-max (* 1024 1024)  ; 1 mb
+        lsp-completion-provider :capf
+        lsp-idle-delay 0.500)
+  (add-to-list 'exec-path "/opt/elixir-ls-0.7.0")
   :hook (
-         (kotlin-mode . lsp)
+         (elixir-mode . #'lsp-deffered)
+	 (java-mode . #'lsp-deferred)
+         (kotlin-mode . #'lsp-deferred)
          (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp)
+  :commands lsp
+  :config
+  (setq-default indent-tabs-mode nil)
+  (setq lsp-intelephense-multi-root nil) ; don't scan unnecessary projects
+  (with-eval-after-load 'lsp-intelephense
+  (setf (lsp--client-multi-root (gethash 'iph lsp-clients)) nil))
+  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map))
 
-;; (use-package lsp-mode
-;;   :commands (lsp lsp-deffered)
-;;   :hook (kotlin-mode . lsp)
-;;   :init
-;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-;;   (setq lsp-keymap-prefix "C-c l")
-;;   :config
-;;   (lsp-enable-which-key-integration t))
+;; See https://github.com/neppramod/java_emacs/blob/master/emacs-configuration.org
+(use-package lsp-java
+  :ensure t
+  :config
+  (add-hook 'java-mode-hook 'lsp))
+
+(use-package fsharp-mode
+  :defer t
+  :ensure t
+  :config
+  (setq-default fsharp-indent-offset 4))
+
+(use-package eglot-fsharp
+  :ensure t)
 
 (use-package eldoc-box
   :after eglot
@@ -464,36 +510,36 @@
   :config
   (zone-when-idle 600))
 
-(use-package ligature
-  :load-path "../.emacs-config/"
-  :config
-  ;; Enable the "www" ligature in every possible major mode
-  ;;(ligature-set-ligatures 't '("www"))
-  ;; Enable traditional ligature support in eww-mode, if the
-  ;; `variable-pitch' face supports it
-  (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
-  ;; Enable all Cascadia Code ligatures in programming modes
-  (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
-                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
-                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
-                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
-                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
-                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
-                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
-                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
-                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
-                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
-                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
-                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
-                                       "\\" "://"))
-  ;; Enables ligature checks globally in all buffers. You can also do it
-  ;; per mode with `ligature-mode'.
-  (global-ligature-mode t))
+;; If enable it then opening java file will freeze emacs
+;; (use-package ligature
+;;   :load-path "../.emacs-config/"
+;;   :config
+;;   ;; Enable the "www" ligature in every possible major mode
+;;   ;;(ligature-set-ligatures 't '("www"))
+;;   ;; Enable traditional ligature support in eww-mode, if the
+;;   ;; `variable-pitch' face supports it
+;;   (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+;;   ;; Enable all Cascadia Code ligatures in programming modes
+;;   (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+;;                                        ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+;;                                        "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+;;                                        "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+;;                                        "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+;;                                        "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+;;                                        "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+;;                                        "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+;;                                        ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+;;                                        "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+;;                                        "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+;;                                        "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+;;                                        "\\" "://"))
+;;   ;; Enables ligature checks globally in all buffers. You can also do it
+;;   ;; per mode with `ligature-mode'.
+;;   (global-ligature-mode t))
 
 (eval-and-compile
   (defun site-list-mu4e ()
     "/usr/share/emacs/site-lisp/mu4e/"))
-
 
 (use-package mu4e
   :ensure nil
@@ -696,7 +742,10 @@ it can be passed in POS."
         org-hide-block-startup nil
         org-src-preserve-indentation nil
         org-startup-folded 'content
-        org-cycle-separator-lines 2)
+        org-cycle-separator-lines 2
+        org-enforce-todo-dependencies t
+        org-track-ordered-property-with-tag t
+        org-enforce-todo-checkbox-dependencies t)
 
   (org-toggle-pretty-entities) ;; visual display of super- and subscripts
   (setq org-agenda-prefix-format '((agenda . " %i %-12:c%?-12t% s")
@@ -715,7 +764,9 @@ it can be passed in POS."
     '(("D" "Day agenda"
 	((agenda "" ((org-agenda-ndays 1))) ;; limits the agenda display to a single day
 	    (todo "IN-PROGRESS")
-	    (todo "NEXT")
+	    (todo "NEXT"
+                  ((org-agenda-skip-entry-if 'deadline 'scheduled)
+                   (org-agenda-dim-blocked-tasks 'invisible)))
 	    (todo "WAITING"))
 	    ((org-agenda-compact-blocks t)))
       ("W" "Day agenda"
@@ -772,12 +823,25 @@ it can be passed in POS."
   (setq org-todo-repeat-to-state "REPEATING")
   (setq org-refile-targets (quote ((nil :maxlevel . 9)
                                    (org-agenda-files :maxlevel . 9))))
+  (setq org-agenda-files (list "~/Documents/org/Documents/Inbox.org"
+                               "~/Documents/org/Documents/GTD.org"))
 
   (setq org-capture-templates
 	'(("e" "Drill card Russian <-> English"
-	   entry
-	   (file+headline "~/Documents/org/Documents/drill/en-rus.org" "Cards")
-	   (file "~/.emacs-config/drill-en-rus.orgcptmpl"))))
+	    entry
+	    (file+headline "~/Documents/org/Documents/drill/en-rus.org" "Cards")
+	    (file "~/.emacs-config/drill-en-rus.orgcptmpl"))
+          ("i" "Inbox")
+          ("iy" "Inbox YouTube" entry
+           (file "~/Documents/org/Documents/Inbox.org")
+           "* Посмотреть видео [[%^{YouTube Link}][%^{YouTube Title}]] :youtube:\n %?")
+          ("ia" "Inbox Article" entry
+           (file "~/Documents/org/Documents/Inbox.org")
+           "* Прочитать статью [[%^{Article Link}][%^{Article Title}]] :article:\n %^{Description} %?")))
+          ;; ("ily" "Inbox youtube"
+          ;;   entry
+          ;;   (file "~/Documents/org/Documents/Inbox.org")
+          ;;   "* Посмотреть видео %^{YouTube Link} %?")))
 
   (setq org-agenda-include-diary t)
   (setq org-agenda-skip-deadline-if-done t)
@@ -785,29 +849,36 @@ it can be passed in POS."
   (setq org-agenda-start-on-weekday nil))
 
 (use-package org-roam
-  :hook
-  (after-init . org-roam-mode)
+  :ensure t
+  :init
+  (setq org-roam-v2-ack t)
   :custom
   (org-roam-directory "~/Documents/org/Documents/Roam")
-  (org-roam-completion-everywhere t)
-  (org-roam-completion-system 'ivy)
   (org-roam-capture-templates
-    '(("d" "default" plain #'org-roam--capture-get-point
-      "%?"
-      :file-name "%<%Y%m%d%H%M%S>"
-      :head "#+TITLE: ${title}\n#+CREATED: %U\n#+LAST_MODIFIED: %U\n#+ROAM_ALIAS: \n#+ROAM_TAGS: "
-      :unnarrowed t)))
+    '(("d" "default" plain "%?" :if-new
+       (file+head "%<%Y%m%d%H%M%S>.org" "#+TITLE: ${title}\n#+CREATED: %U\n#+LAST_MODIFIED: %U\n#+ROAM_ALIASES: \n#+FILETAGS: ")
+       :unnarrowed t)))
 
-  :bind (:map org-roam-mode-map
-              (("C-c n l"   . org-roam)
-               ("C-c n f"   . org-roam-find-file)
-	       ("C-c n g"   . org-roam-graph)
-               ("C-c n c"   . org-roam-dailies-capture-today))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
          :map org-mode-map
-              (("C-c n i" . org-roam-insert))
-              (("C-c n I" . org-roam-insert-immediate))))
+         ("C-M-i"   . completion-at-point))
 
+  :config
+  (org-roam-setup))
 
+;; TODO: replace with use-package + straight
+(add-to-list 'load-path "~/.emacs.d/private/org-roam-ui")
+(load-library "org-roam-ui")
+(setq org-roam-ui-sync-theme t
+      org-roam-ui-follow t
+      org-roam-ui-update-on-save t
+      org-roam-ui-open-on-start t)
+
+(setq ispell-program-name "/usr/bin/hunspell")
+
+;; use M-x org-ref-help for help.
 (use-package org-ref
   :init
   (setq reftex-default-bibliography "~/Documents/org/Documents/bibliography/references.bib"
@@ -863,5 +934,8 @@ it can be passed in POS."
 (use-package org-drill
   :config
   (setq org-drill-scope `("~/Documents/org/Documents/drill/en-rus.org")))
+
+;; (use-package alchemist
+;;   :hook (elixir-mode . alchemist-mode))
 
 (provide 'config-packages)

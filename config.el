@@ -28,6 +28,5 @@
 ;; (require 'config-csharp)
 (require 'config-packages)
 
-
 (if (file-exists-p custom-file)
     (load custom-file))
