@@ -410,5 +410,113 @@ it can be passed in POS."
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
 )
 
+(use-package doom-themes
+  :after (cl-lib))
+  ;; :straight t
+  ;; :config
+  ;; ;; Global settings (defaults)
+  ;; (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+  ;;       doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  ;; (load-theme 'doom-opera-light t)   ;
+  ;; ;; (load-theme 'doom-one t)
+
+  ;; ;; Enable flashing mode-line on errors
+  ;; (doom-themes-visual-bell-config)
+  ;; ;; Enable custom neotree theme (all-the-icons must be installed!)
+  ;; (doom-themes-neotree-config)
+  ;; ;; or for treemacs users
+  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  ;; (doom-themes-treemacs-config)
+  ;; ;; Corrects (and improves) org-mode's native fontification.
+  ;; (doom-themes-org-config))
+
+(use-package theme-changer
+  :after (doom-themes)
+  :config
+  (setq calendar-latitude 55.75)
+  (setq calendar-longitude 37.61)
+  (change-theme 'doom-opera-light 'doom-one))
+
+;; https://github.com/hlissner/emacs-doom-themes
+;; https://github.com/hlissner/emacs-doom-themes/tree/screenshots
+(use-package spacegray-theme)
+
+(use-package slime
+  :config
+  (setq inferior-lisp-program "sbcl")
+  (setq slime-contribs '(slime-fancy))
+  (add-to-list 'slime-contribs 'slime-cl-indent)
+  (setq slime-port 4006))
+
+
+
+
+(defvar mz/slime-nyxt-delay
+  0.1
+  "Delay to wait for `cl-ide' commands to reach Nyxt.")
+
+(defun mz/start-and-connect-to-nyxt (&optional no-maximize)
+  "Start Nyxt with swank capabilities."
+  (interactive)
+  (async-shell-command (format "nyxt -e \"(nyxt-user::start-swank)\""))
+  (sleep-for mz/slime-nyxt-delay)
+  (mz/slime-connect "localhost" "4006")
+  (unless no-maximize (mz/slime-repl-send-string "(toggle-fullscreen)")))
+
+(defun mz/slime-connect (host port)
+  (defun true (&rest args) 't)
+  (advice-add 'slime-check-version :override #'true)
+  (slime-connect host port)
+  (sleep-for mz/slime-nyxt-delay)
+  (advice-remove 'slime-check-version #'true))
+
+(defun mz/slime-repl-send-string (sexp)
+  (defun true (&rest args) 't)
+  (advice-add 'slime-check-version :override #'true)
+  (if (slime-connected-p)
+    (slime-repl-send-string sexp)
+    (error "Slime is not connected to Nyxt. Run `mz/start-and-connect-to-nyxt' first."))
+  (sleep-for mz/slime-nyxt-delay)
+  (advice-remove 'slime-check-version #'true))
+
+(defun mz/browse-url-nyxt (url &optional buffer-title)
+  "Browse URL with the Nyxt browser"
+  (interactive "sURL: ")
+  (mz/slime-repl-send-string
+   (format
+    "(buffer-load \"%s\" %s)"
+    url
+    (if buffer-title (format ":buffer (make-buffer :title \"%s\")" buffer-title) ""))))
+
+(defun browse-url-nyxt (url &optional new-window)
+  (interactive "sURL: ")
+  (unless (slime-connected-p) (mz/start-and-connect-to-nyxt))
+  (mz/browse-url-nyxt url url))
+
+(use-package engine-mode
+  :config
+  (defengine wikipedia
+    "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+    :keybinding "w"
+    :browser 'browse-url-nyxt
+    :docstring "Searchin' the wikis.")
+  
+  (defengine youtube
+    "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
+    :keybinding "y"
+    :browser 'browse-url-nyxt)
+
+  (defengine google
+    "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+    :keybinding "g"
+    :browser 'browse-url-nyxt)
+
+  (defengine duckduckgo
+    "https://duckduckgo.com/?q=%s"
+    :keybinding "d"
+    :browser 'browse-url-nyxt)
+  
+  (engine-mode t))
+
 
 (provide 'config-packages)

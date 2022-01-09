@@ -240,10 +240,6 @@
 
 (use-package page-break-lines)
 
-;; https://github.com/hlissner/emacs-doom-themes
-;; https://github.com/hlissner/emacs-doom-themes/tree/screenshots
-(use-package spacegray-theme)
-
 (use-package diminish)
 
 (setq mz/settings-use-posframe nil)
@@ -294,32 +290,6 @@
   :bind
   (("C-M-<mouse-3>" . mc/add-cursor-on-click)))
 
-(use-package doom-themes
-  :requires (cl-lib))
-  ;; :straight t
-  ;; :config
-  ;; ;; Global settings (defaults)
-  ;; (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-  ;;       doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;; (load-theme 'doom-opera-light t)   ;
-  ;; ;; (load-theme 'doom-one t)
-
-  ;; ;; Enable flashing mode-line on errors
-  ;; (doom-themes-visual-bell-config)
-  ;; ;; Enable custom neotree theme (all-the-icons must be installed!)
-  ;; (doom-themes-neotree-config)
-  ;; ;; or for treemacs users
-  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  ;; (doom-themes-treemacs-config)
-  ;; ;; Corrects (and improves) org-mode's native fontification.
-  ;; (doom-themes-org-config))
-
-(use-package theme-changer
-  :requires (doom-themes)
-  :config
-  (setq calendar-latitude 55.75)
-  (setq calendar-longitude 37.61)
-  (change-theme 'doom-opera-light 'doom-one))
 
 (use-package anzu
   :after isearch
@@ -675,85 +645,6 @@
   (global-linum-mode 0)
   (linum-mode 0))
 
-;; --------------------------
-;; Handling file properties for ‘CREATED’ & ‘LAST_MODIFIED’
-;; from https://github.com/zaeph/.emacs.d/blob/4548c34d1965f4732d5df1f56134dc36b58f6577/init.el#L2822-L2875
-;;      https://org-roam.discourse.group/t/update-a-field-last-modified-at-save/321
-;; --------------------------
-(defun mz/org-find-time-file-property (property &optional anywhere)
-"Return the position of the time file PROPERTY if it exists.
-When ANYWHERE is non-nil, search beyond the preamble."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((first-heading
-           (save-excursion
-             (re-search-forward org-outline-regexp-bol nil t))))
-      (when (re-search-forward (format "^#\\+%s:" property)
-                               (if anywhere nil first-heading)
-                               t)
-        (point)))))
-
-(defun mz/org-has-time-file-property-p (property &optional anywhere)
-"Return the position of time file PROPERTY if it is defined.
-As a special case, return -1 if the time file PROPERTY exists but
-is not defined."
-  (when-let ((pos (mz/org-find-time-file-property property anywhere)))
-    (save-excursion
-      (goto-char pos)
-      (if (and (looking-at-p " ")
-               (progn (forward-char)
-                      (org-at-timestamp-p 'lax)))
-          pos
-        -1))))
-
-(defun mz/org-set-time-file-property (property &optional anywhere pos)
-"Set the time file PROPERTY in the preamble.
-When ANYWHERE is non-nil, search beyond the preamble.
-If the position of the file PROPERTY has already been computed,
-it can be passed in POS."
-  (when-let ((pos (or pos
-                      (mz/org-find-time-file-property property))))
-    (save-excursion
-      (goto-char pos)
-      (if (looking-at-p " ")
-          (forward-char)
-        (insert " "))
-      (delete-region (point) (line-end-position))
-      (let* ((now (format-time-string "[%Y-%m-%d %a %H:%M]")))
-        (insert now)))))
-
-(defun mz/org-set-last-modified ()
-"Update the LAST_MODIFIED file property in the preamble."
-  (when (derived-mode-p 'org-mode)
-    (mz/org-set-time-file-property "LAST_MODIFIED")))
-
-(use-package org-roam
-  :requires (dash f org emacsql emacsql-sqlite magit-section)
-  :init
-  (setq org-roam-v2-ack t)
-  :custom
-  (org-roam-directory "~/Documents/org/Documents/Roam")
-  ;; (org-roam-node-display-template "${title:80} ${tags:60}")
-  ;; (org-roam-capture-templates
-  ;;   '(("d" "default" plain "%?" :if-new
-  ;;      (file+head "%<%Y%m%d%H%M%S>.org" "#+TITLE: ${title}\n#+CREATED: %U\n#+LAST_MODIFIED: %U\n#+ROAM_ALIASES: \n#+FILETAGS: ")
-  ;;      :unnarrowed t)))
-
-  ;; :bind (("C-c n l" . org-roam-buffer-toggle)
-  ;;        ("C-c n f" . org-roam-node-find)
-  ;;        ("C-c n i" . org-roam-node-insert)
-  ;;        :map org-mode-map
-  ;;        ("C-M-i"   . completion-at-point))
-  :config
-  (org-roam-db-autosync-enable))
-
-;; TODO: replace with use-package + straight
-;; (add-to-list 'load-path "~/.emacs.d/private/org-roam-ui")
-;; (load-library "org-roam-ui")
-;; (setq org-roam-ui-sync-theme t
-;;       org-roam-ui-follow t
-;;       org-roam-ui-update-on-save t
-;;       org-roam-ui-open-on-start t
 
 (setq ispell-program-name "/usr/bin/hunspell")
 
