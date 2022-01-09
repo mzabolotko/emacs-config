@@ -141,44 +141,36 @@ it can be passed in POS."
 				 (search . " %i %-12:c")))
 
   (global-set-key "\C-cl" 'org-store-link)
-  ;; ;; (global-set-key "\C-cc" 'counsel-org-capture)
   (global-set-key "\C-ca" 'org-agenda)
 
-  ;; (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+  (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
 
-  ;; (setq org-agenda-custom-commands
-  ;;   '(("D" "Day agenda"
-  ;; 	((agenda "" ((org-agenda-ndays 1))) ;; limits the agenda display to a single day
-  ;; 	    (todo "IN-PROGRESS")
-  ;; 	    (todo "NEXT"
-  ;;                 ((org-agenda-skip-entry-if 'deadline 'scheduled)
-  ;;                  (org-agenda-dim-blocked-tasks 'invisible)))
-  ;; 	    (todo "WAITING"))
-  ;; 	    ((org-agenda-compact-blocks t)))
-  ;;     ("W" "Day agenda"
-  ;; 	((agenda "" ((org-agenda-ndays 7))) ;; limits the agenda display to a single day
-  ;; 	    (todo "WAITING"))
-  ;; 	    ((org-agenda-compact-blocks t)))) ;; options set here apply to the entire block
-  ;; 	)
-
-  ;; (use-package org-superstar
-  ;;   :after org
-  ;;   :hook (org-mode . org-superstar-mode)
-  ;;   :custom
-  ;;   (org-superstar-remove-leading-stars t)
-  ;;   (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●")))
+  (setq org-agenda-custom-commands
+    '(("D" "Day agenda"
+	((agenda "" ((org-agenda-ndays 1))) ;; limits the agenda display to a single day
+	    (todo "IN-PROGRESS")
+	    (todo "NEXT"
+                  ((org-agenda-skip-entry-if 'deadline 'scheduled)
+                   (org-agenda-dim-blocked-tasks 'invisible)))
+	    (todo "WAITING"))
+	    ((org-agenda-compact-blocks t)))
+      ("W" "Day agenda"
+	((agenda "" ((org-agenda-ndays 7))) ;; limits the agenda display to a single day
+	    (todo "WAITING"))
+	    ((org-agenda-compact-blocks t)))) ;; options set here apply to the entire block
+	)
 
   ;; Increase the size of various headings
-  ;; (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
-  ;; (dolist (face '((org-level-1 . 1.2)
-  ;;                 (org-level-2 . 1.1)
-  ;;                 (org-level-3 . 1.05)
-  ;;                 (org-level-4 . 1.0)
-  ;;                 (org-level-5 . 1.1)
-  ;;                 (org-level-6 . 1.1)
-  ;;                 (org-level-7 . 1.1)
-  ;;                 (org-level-8 . 1.1)))
-  ;;   (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face)))
+  (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face)))
 
   ;; (require 'org-indent)
 
@@ -233,7 +225,16 @@ it can be passed in POS."
   ;; (setq org-agenda-skip-deadline-if-done t)
   ;; (setq org-agenda-skip-scheduled-if-done t)
   ;; (setq org-agenda-start-on-weekday nil))
-)
+  )
+
+(use-package org-superstar
+  :after org
+  :hook (org-mode . org-superstar-mode)
+  :custom
+  (org-superstar-remove-leading-stars t)
+  (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+
 
 (use-package emacsql)
 
@@ -500,7 +501,7 @@ it can be passed in POS."
     :keybinding "w"
     :browser 'browse-url-nyxt
     :docstring "Searchin' the wikis.")
-  
+
   (defengine youtube
     "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
     :keybinding "y"
@@ -515,8 +516,15 @@ it can be passed in POS."
     "https://duckduckgo.com/?q=%s"
     :keybinding "d"
     :browser 'browse-url-nyxt)
-  
+
   (engine-mode t))
 
+(use-package highlight-indent-guides
+  :custom
+  (highlight-indent-guides-method 'character)
+  (highlight-indent-guides-responsive 'top)
+  (highlight-indent-guides-auto-enabled nil)
+  :hook
+  (prog-mode . highlight-indent-guides-mode))
 
 (provide 'config-packages)

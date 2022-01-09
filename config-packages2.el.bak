@@ -229,15 +229,6 @@
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :bind (("C-x H" . dired-hide-dotfiles-mode)))
 
-(use-package highlight-indent-guides
-  :custom
-  (highlight-indent-guides-method 'character)
-  (highlight-indent-guides-responsive 'top)
-  (highlight-indent-guides-auto-enabled nil)
-  :hook
-  (prog-mode . highlight-indent-guides-mode))
-
-
 (use-package page-break-lines)
 
 (use-package diminish)
@@ -558,7 +549,7 @@
 (use-package flymake
   :requires (eldoc project))
 
-;; Get eldoc error: (void-variable show-paren-context-when-offscreen) 
+;; Get eldoc error: (void-variable show-paren-context-when-offscreen)
 ;; (use-package eglot
 ;;   :requires (jsonrpc flymake project xref))
 
