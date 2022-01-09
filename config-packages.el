@@ -172,60 +172,59 @@ it can be passed in POS."
                   (org-level-8 . 1.1)))
     (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face)))
 
-  ;; (require 'org-indent)
+  (require 'org-indent)
 
-  ;; (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  ;; (set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
-  ;; (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
-  ;; (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-  ;; (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
-  ;; (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  ;; (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  ;; (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  ;; (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
 
-  ;; ;; Get rid of the background on column views
-  ;; (set-face-attribute 'org-column nil :background nil)
-  ;; (set-face-attribute 'org-column-title nil :background nil)
+  ;; Get rid of the background on column views
+  (set-face-attribute 'org-column nil :background nil)
+  (set-face-attribute 'org-column-title nil :background nil)
 
-  ;; ;; This is needed as of Org 9.2
-  ;; (require 'org-tempo)
+  ;; This is needed as of Org 9.2
+  (require 'org-tempo)
 
-  ;; (add-to-list 'org-structure-template-alist '("sh" . "src sh"))
-  ;; (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  ;; (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  ;; (add-to-list 'org-structure-template-alist '("go" . "src go"))
-  ;; (add-to-list 'org-structure-template-alist '("yaml" . "src yaml"))
-  ;; (add-to-list 'org-structure-template-alist '("json" . "src json"))
+  (add-to-list 'org-structure-template-alist '("sh" . "src sh"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("go" . "src go"))
+  (add-to-list 'org-structure-template-alist '("yaml" . "src yaml"))
+  (add-to-list 'org-structure-template-alist '("json" . "src json"))
 
-  ;; (setq org-todo-repeat-to-state "REPEATING")
-  ;; (setq org-refile-targets (quote ((nil :maxlevel . 9)
-  ;;                                  (org-agenda-files :maxlevel . 9))))
-  ;; (setq org-agenda-files (list "~/Documents/org/Documents/Inbox.org"
-  ;;                              "~/Documents/org/Documents/GTD.org"))
+  (setq org-todo-repeat-to-state "REPEATING")
+  (setq org-refile-targets (quote ((nil :maxlevel . 9)
+                                   (org-agenda-files :maxlevel . 9))))
+  (setq org-agenda-files (list "~/Documents/org/Documents/Inbox.org"
+                               "~/Documents/org/Documents/GTD.org"))
 
-  ;; (setq org-capture-templates
-  ;; 	'(("e" "Drill card Russian <-> English"
-  ;; 	    entry
-  ;; 	    (file+headline "~/Documents/org/Documents/drill/en-rus.org" "Cards")
-  ;; 	    (file "~/.emacs-config/drill-en-rus.orgcptmpl"))
-  ;;         ("i" "Inbox")
-  ;;         ("iy" "Inbox YouTube" entry
-  ;;          (file "~/Documents/org/Documents/Inbox.org")
-  ;;          "* Посмотреть видео [[%^{YouTube Link}][%^{YouTube Title}]] :youtube:\n %?")
-  ;;         ("ia" "Inbox Article" entry
-  ;;          (file "~/Documents/org/Documents/Inbox.org")
-  ;;          "* Прочитать статью [[%^{Article Link}][%^{Article Title}]] :article:\n %^{Description} %?")))
-  ;;         ;; ("ily" "Inbox youtube"
-  ;;         ;;   entry
-  ;;         ;;   (file "~/Documents/org/Documents/Inbox.org")
-  ;;         ;;   "* Посмотреть видео %^{YouTube Link} %?")))
+  (setq org-capture-templates
+	'(("e" "Drill card Russian <-> English"
+	    entry
+	    (file+headline "~/Documents/org/Documents/drill/en-rus.org" "Cards")
+	    (file "~/.emacs-config/drill-en-rus.orgcptmpl"))
+          ("i" "Inbox")
+          ("iy" "Inbox YouTube" entry
+           (file "~/Documents/org/Documents/Inbox.org")
+           "* Посмотреть видео [[%^{YouTube Link}][%^{YouTube Title}]] :youtube:\n %?")
+          ("ia" "Inbox Article" entry
+           (file "~/Documents/org/Documents/Inbox.org")
+           "* Прочитать статью [[%^{Article Link}][%^{Article Title}]] :article:\n %^{Description} %?")))
+          ;; ("ily" "Inbox youtube"
+          ;;   entry
+          ;;   (file "~/Documents/org/Documents/Inbox.org")
+          ;;   "* Посмотреть видео %^{YouTube Link} %?")))
 
-  ;; (setq org-agenda-include-diary t)
-  ;; (setq org-agenda-skip-deadline-if-done t)
-  ;; (setq org-agenda-skip-scheduled-if-done t)
-  ;; (setq org-agenda-start-on-weekday nil))
-  )
+  (setq org-agenda-include-diary t)
+  (setq org-agenda-skip-deadline-if-done t)
+  (setq org-agenda-skip-scheduled-if-done t)
+  (setq org-agenda-start-on-weekday nil))
 
 (use-package org-superstar
   :after org
