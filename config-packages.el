@@ -442,14 +442,12 @@ it can be passed in POS."
 (use-package spacegray-theme)
 
 (use-package slime
+  :after (cl-lib macrostep)
   :config
   (setq inferior-lisp-program "sbcl")
   (setq slime-contribs '(slime-fancy))
   (add-to-list 'slime-contribs 'slime-cl-indent)
   (setq slime-port 4006))
-
-
-
 
 (defvar mz/slime-nyxt-delay
   0.1
@@ -494,6 +492,7 @@ it can be passed in POS."
   (mz/browse-url-nyxt url url))
 
 (use-package engine-mode
+  :after (cl-lib)
   :config
   (defengine wikipedia
     "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
@@ -525,5 +524,32 @@ it can be passed in POS."
   (highlight-indent-guides-auto-enabled nil)
   :hook
   (prog-mode . highlight-indent-guides-mode))
+
+(use-package yaml-mode
+  :mode "\\.yaml\\'")
+
+(use-package fireplace
+  :commands fireplace)
+
+(use-package 2048-game
+  :commands 2048-game)
+
+(use-package zone
+  :config
+  (zone-when-idle 600))
+
+(use-package vterm
+  :commands vterm
+  :config
+  (setq vterm-max-scrollback 10000))
+
+(use-package markdown-mode
+  :mode "\\.md\\'"
+  :custom (markdown-header-scaling t))
+
+(use-package savehist
+  :config
+  (setq history-length 25)
+  (savehist-mode 1))
 
 (provide 'config-packages)

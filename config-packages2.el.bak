@@ -44,32 +44,6 @@
   (setq mu4e-refile-folder "/[Gmail]/All Mail")
   (setq mu4e-trash-folder  "/[Gmail]/Trash"))
 
-(use-package yaml-mode
-  :mode "\\.yaml\\'")
-
-(use-package fireplace
-  :commands fireplace)
-
-(use-package 2048-game
-  :commands 2048-game)
-
-(use-package zone
-  :config
-  (zone-when-idle 600))
-
-(use-package vterm
-  :commands vterm
-  :config
-  (setq vterm-max-scrollback 10000))
-
-(use-package markdown-mode
-  :mode "\\.md\\'"
-  :custom (markdown-header-scaling t))
-
-(use-package savehist
-  :config
-  (setq history-length 25)
-  (savehist-mode 1))
 
 ;; Enable richer annotations using the Marginalia package
 (use-package marginalia
