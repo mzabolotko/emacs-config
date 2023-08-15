@@ -110,13 +110,26 @@ it can be passed in POS."
 
 ;; Enable vertico
 (use-package vertico
+  :straight (:files (:defaults "extensions/*"))
   :init
   (vertico-mode)
+
   ;; Grow and shrink the Vertico minibuffer
   (setq vertico-resize t)
 
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  (setq vertico-cycle t))
+  (setq vertico-cycle t)
+  (setq vertico-multiform-commands
+         '((consult-line reverse buffer)
+           (consult-imenu reverse buffer)
+           (consult-grep reverse buffer)))
+
+   ;; (setq vertico-multiform-categories
+   ;;       '((file buffer grid)
+   ;;         (imenu (:not indexed mouse))
+   ;;         (symbol (vertico-sort-function . vertico-sort-alpha))))
+
+  (vertico-multiform-mode))
 
 ;; Optionally use the `orderless' completion style. See
 ;; `+orderless-dispatch' in the Consult wiki for an advanced Orderless style
@@ -218,29 +231,29 @@ it can be passed in POS."
   (setq org-todo-repeat-to-state "REPEATING")
   (setq org-refile-targets (quote ((nil :maxlevel . 9)
                                    (org-agenda-files :maxlevel . 9))))
-  (setq org-agenda-files (list "~/Documents/Dropbox/Inbox.org"
-                               "~/Documents/Dropbox/GTD.org"
-			       "~/Documents/Dropbox/Work.org"
-			       "~/Documents/Dropbox/habits.org"))
+  (setq org-agenda-files (list "~/Documents/Org/Inbox.org"
+                               "~/Documents/Org/GTD.org"
+			       "~/Documents/Org/Work.org"
+			       "~/Documents/Org/habits.org"))
 
   (setq org-capture-templates
 	'(("w"
 	    "Default template"
 	    entry
-	    (file+headline "~/Documents/Dropbox/references.org" "References")
+	    (file+headline "~/Documents/Org/references.org" "References")
 	    "** %:description\n\n  %:link \n\n %:initial"
 	    :empty-lines 1
 	    :kill-client t)
 	  ("e" "Drill card Russian <-> English"
 	    entry
-	    (file+headline "~/Documents/Dropbox/drill/en-rus.org" "Cards")
+	    (file+headline "~/Documents/Org/drill/en-rus.org" "Cards")
 	    (file "~/.emacs-config/drill-en-rus.orgcptmpl"))
           ("i" "Inbox")
           ("iy" "Inbox YouTube" entry
-           (file "~/Documents/Dropbox/Inbox.org")
+           (file "~/Documents/Org/Inbox.org")
            "* Посмотреть видео [[%^{YouTube Link}][%^{YouTube Title}]] :youtube:\n %?")
           ("ia" "Inbox Article" entry
-           (file "~/Documents/Dropbox/Inbox.org")
+           (file "~/Documents/Org/Inbox.org")
            "* Прочитать статью [[%^{Article Link}][%^{Article Title}]] :article:\n %^{Description} %?")))
 
   (setq org-agenda-start-with-log-mode t)
@@ -253,10 +266,9 @@ it can be passed in POS."
 
 (use-package org-superstar
   :after org
-  :hook (org-mode . org-superstar-mode)
-  :custom
-  (org-superstar-remove-leading-stars t)
-  (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●")))
+  :init
+  ;; (setq org-superstar-special-todo-items t)
+  :hook (org-mode . (lambda () (org-superstar-mode 1))))
 
 (require 'ox-md)
 
@@ -271,7 +283,7 @@ it can be passed in POS."
   :init
   (setq org-roam-v2-ack t)
   :custom
-  (org-roam-directory "~/Documents/Dropbox/Roam")
+  (org-roam-directory "~/Documents/Org/Roam")
   (org-roam-node-display-template "${title:80} ${tags:60}")
   (org-roam-capture-templates
     '(("d" "default" plain "%?" :if-new
@@ -643,32 +655,32 @@ it can be passed in POS."
   :config
     (define-key company-mode-map [remap completion-at-point] #'consult-company))
 
-(use-package consult-org-roam
-   :ensure t
-   :after org-roam
-   :init
-   (require 'consult-org-roam)
-   ;; Activate the minor mode
-   (consult-org-roam-mode 1)
-   :custom
-   ;; Use `ripgrep' for searching with `consult-org-roam-search'
-   (consult-org-roam-grep-func #'consult-ripgrep)
-   ;; Configure a custom narrow key for `consult-buffer'
-   (consult-org-roam-buffer-narrow-key ?r)
-   ;; Display org-roam buffers right after non-org-roam buffers
-   ;; in consult-buffer (and not down at the bottom)
-   (consult-org-roam-buffer-after-buffers t)
-   :config
-   ;; Eventually suppress previewing for certain functions
-   (consult-customize
-    consult-org-roam-forward-links
-    :preview-key (kbd "M-."))
-   :bind
-   ;; Define some convenient keybindings as an addition
-   ("C-c n e" . consult-org-roam-file-find)
-   ("C-c n b" . consult-org-roam-backlinks)
-   ("C-c n d" . consult-org-roam-forward-links)
-   ("C-c n r" . consult-org-roam-search))
+;; (use-package consult-org-roam
+;;    :ensure t
+;;    :after org-roam
+;;    :init
+;;    (require 'consult-org-roam)
+;;    ;; Activate the minor mode
+;;    (consult-org-roam-mode 1)
+;;    :custom
+;;    ;; Use `ripgrep' for searching with `consult-org-roam-search'
+;;    (consult-org-roam-grep-func #'consult-ripgrep)
+;;    ;; Configure a custom narrow key for `consult-buffer'
+;;    (consult-org-roam-buffer-narrow-key ?r)
+;;    ;; Display org-roam buffers right after non-org-roam buffers
+;;    ;; in consult-buffer (and not down at the bottom)
+;;    (consult-org-roam-buffer-after-buffers t)
+;;    :config
+;;    ;; Eventually suppress previewing for certain functions
+;;    (consult-customize
+;;     consult-org-roam-forward-links
+;;     :preview-key (kbd "M-."))
+;;    :bind
+;;    ;; Define some convenient keybindings as an addition
+;;    ("C-c n e" . consult-org-roam-file-find)
+;;    ("C-c n b" . consult-org-roam-backlinks)
+;;    ("C-c n d" . consult-org-roam-forward-links)
+;;    ("C-c n r" . consult-org-roam-search))
 
 (use-package embark-consult)
 
