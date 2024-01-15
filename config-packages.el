@@ -36,8 +36,8 @@
   (visual-line-mode 1)
   (mz/set-org-face-attributes)
   ;; (diminish org-indent-mode)
-  (global-linum-mode 0)
-  (linum-mode 0))
+  ;; (global-linum-mode 0) - https://github.com/emacsorphanage/git-gutter/pull/222
+  (global-display-line-numbers-mode 'nil))
 
 ;; --------------------------
 ;; Handling file properties for ‘CREATED’ & ‘LAST_MODIFIED’
@@ -91,6 +91,9 @@ it can be passed in POS."
   (when (derived-mode-p 'org-mode)
     (mz/org-set-time-file-property "LAST_MODIFIED")))
 
+(setq browse-url-generic-program
+      (executable-find (getenv "BROWSER"))
+      browse-url-browser-function 'browse-url-generic)
 
 ;; Enable richer annotations using the Marginalia package
 (use-package marginalia
@@ -242,6 +245,20 @@ it can be passed in POS."
 	    entry
 	    (file+headline "~/Documents/Org/references.org" "References")
 	    "** %:description\n\n  %:link \n\n %:initial"
+	    :empty-lines 1
+	    :kill-client t)
+	  ("p"
+	    "Browser capture selected text"
+	    entry
+	    (file+headline "~/Documents/Org/references.org" "References")
+	    "** %:description\n\n  %:link \n\n %:initial \n\n "
+	    :empty-lines 1
+	    :kill-client t)
+	  ("L"
+	    "Browser capture page"
+	    entry
+	    (file+headline "~/Documents/Org/references.org" "References")
+	    "** %:link \n\n "
 	    :empty-lines 1
 	    :kill-client t)
 	  ("e" "Drill card Russian <-> English"
@@ -570,28 +587,28 @@ it can be passed in POS."
 (use-package dired-rainbow
   :after (dash dired-hacks-utils)
   :config
-  (progn
-    (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
-    (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
-    (dired-rainbow-define xml "#672a1e" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata" "config"))
-    (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
-    (dired-rainbow-define markdown "#ff0761" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
-    (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
-    (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
-    (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
-    (dired-rainbow-define log "#c17d11" ("log"))
-    (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim" "cmd" "ps1"))
-    (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js" "fsx" "exs"))
-    (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" "java" "ex" ))
-    (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
-    (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
-    (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
-    (dired-rainbow-define encrypted "#9630ce" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem")) ;;
-    (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
-    (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
-    (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
-    (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")
-    ))
+  ;; (progn
+  ;;   (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+  ;;   (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+  ;;   (dired-rainbow-define xml "#672a1e" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata" "config"))
+  ;;   (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+  ;;   (dired-rainbow-define markdown "#ff0761" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+  ;;   (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+  ;;   (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+  ;;   (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+  ;;   (dired-rainbow-define log "#c17d11" ("log"))
+  ;;   (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim" "cmd" "ps1"))
+  ;;   (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js" "fsx" "exs"))
+  ;;   (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" "java" "ex" ))
+  ;;   (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+  ;;   (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+  ;;   (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+  ;;   (dired-rainbow-define encrypted "#9630ce" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem")) ;;
+  ;;   (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+  ;;   (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+  ;;   (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+  ;;   (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")
+       )
 
 (use-package elm-mode)
 
@@ -626,8 +643,7 @@ it can be passed in POS."
         ;; lsp-completion-provider :capf
         ;; lsp-idle-delay 0.500)
   (add-to-list 'exec-path "~/.elixir-language-server")
-  :hook ((elm-mode . #'lsp-deffered)
-	 (elixir-mode . lsp))
+  :hook ((elm-mode elixir-mode go-mode) . #'lsp-deferred)
          ;; (elixir-mode . #'lsp-deffered)
 	 ;; (java-mode . #'lsp-deferred)
          ;; (kotlin-mode . #'lsp-deferred)
@@ -754,6 +770,65 @@ it can be passed in POS."
   :config
   (setq which-key-idle-delay 0.3))
 
+(use-package modus-themes)
+
+(use-package kaolin-themes)
+
+(use-package tommyh-theme)
+
+(use-package gruvbox-theme)
+
+(use-package cyberpunk-theme)
+
+(use-package ample-theme)
+
+(use-package moe-theme)
+
+(use-package alect-themes)
+
+(use-package afternoon-theme)
+
+(use-package flatland-theme)
+
+(use-package gruber-darker-theme)
+
+(use-package clues-theme)
+
 (use-package eglot-fsharp)
+
+(use-package deft
+  :after org-roam
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory org-roam-directory))
+
+(use-package org-roam-ql
+  :straight (org-roam-ql :type git :host github :repo "ahmed-shariff/org-roam-ql"
+                         :files (:defaults (:exclude "org-roam-ql-ql.el")))
+  :after (org-roam)
+  :bind ((:map org-roam-mode-map
+               ;; Have org-roam-ql's transient available in org-roam-mode buffers
+               ("v" . org-roam-ql-buffer-dispatch)
+               :map minibuffer-mode-map
+               ;; Be able to add titles in queries while in minibuffer.
+               ;; This is similar to `org-roam-node-insert', but adds
+               ;; only title as a string.
+               ("C-c n i" . org-roam-ql-insert-node-title))))
+
+(use-package go-mode
+  :mode "\\.go\\'"
+  :config
+  ;; (setq gofmt-args '("-tabs=false" "-tabwidth=4" "-w=true"))
+  (defun mz/go-mode-setup ()
+    "Basic Go mode setup."
+    (add-hook 'before-save-hook #'lsp-format-buffer t t)
+    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+  (add-hook 'go-mode-hook #'mz/go-mode-setup)
+  (setq-default tab-width 4)
+  (setq-default gofmt-command "goimports"))
 
 (provide 'config-packages)
