@@ -22,11 +22,12 @@
 ;; (column-number-mode 1)
 
 (column-number-mode)
+(setq display-line-numbers 'relative)
 
 ;; Enable line numbers for some modes
-(dolist (mode '(text-mode-hook
-                prog-mode-hook
-                conf-mode-hook))
+(dolist (mode '(;;text-mode-hook
+		;;conf-mode-hook
+                prog-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 1))))
   ;; (add-hook mode (lambda () (highlight-indent-guides-mode 1))))
 

@@ -2,42 +2,50 @@
 ;; https://github.com/KaratasFurkan/.emacs.d#package-management
 ;; https://github.com/daviwil/dotfiles/blob/master/Emacs.org
 
-(defun mz/set-org-face-attributes ()
-  ;; Increase the size of various headings
-  (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
-  (dolist (face '((org-level-1 . 1.2)
-                  (org-level-2 . 1.1)
-                  (org-level-3 . 1.05)
-                  (org-level-4 . 1.0)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face)))
-  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
-  (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
 
-  ;; Get rid of the background on column views
-  (set-face-attribute 'org-column nil :background nil)
-  (set-face-attribute 'org-column-title nil :background nil))
+;; test org-modern
+;; (defun mz/set-org-face-attributes ()
+;;   ;; Increase the size of various headings
+;;   (set-face-attribute 'org-document-title nil :family "Iosevka Comfy Duo" :weight 'light :height 1.1)
+;;   (dolist (face '((org-level-1 . 1.1)
+;;                   (org-level-2 . 1.1)
+;;                   (org-level-3 . 1.1)
+;;                   (org-level-4 . 1.1)
+;;                   (org-level-5 . 1.1)
+;;                   (org-level-6 . 1.1)
+;;                   (org-level-7 . 1.1)
+;;                   (org-level-8 . 1.1)))
+;;     (set-face-attribute (car face) nil :family "Iosevka Comfy Duo" :weight 'light :height (cdr face)))
+;;   ;; ;; org-block org-code org-document-info org-document-info-keyword org-indent org-link org-meta-line org-property-value org-special-keyword org-table org-tag org-verbatim
+;;   ;; ;; org-checkbox org-verbatim
+;;   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+;;   (set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
+;;   (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+;;   (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+;;   (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+;;   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+;;   (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+;;   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+;;   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
 
+;;   ;; Get rid of the background on column views
+;;   (set-face-attribute 'org-column nil :background nil)
+;;   (set-face-attribute 'org-column-title nil :background nil)
+;; )
+
+
+(setq display-line-numbers 'relative)
 
 (defun mz/org-mode-setup ()
   (org-indent-mode)
   ;; (variable-pitch-mode 1)
   (auto-fill-mode 0)
   (visual-line-mode 1)
-  (mz/set-org-face-attributes)
+  ;; test org-modern
+  ;; (mz/set-org-face-attributes)
   ;; (diminish org-indent-mode)
   ;; (global-linum-mode 0) - https://github.com/emacsorphanage/git-gutter/pull/222
-  (global-display-line-numbers-mode 'nil))
+  (global-display-line-numbers-mode nil))
 
 ;; --------------------------
 ;; Handling file properties for ‘CREATED’ & ‘LAST_MODIFIED’
@@ -155,6 +163,7 @@ it can be passed in POS."
 
 (use-package f)
 
+
 (use-package org
   :hook ((org-agenda-mode . hack-dir-local-variables-non-file-buffer)
 	 (org-mode . mz/org-mode-setup)
@@ -164,19 +173,49 @@ it can be passed in POS."
   (add-hook 'org-mode-hook #'mz/org-mode-setup)
   (add-hook 'before-save-hook #'mz/org-set-last-modified)
   :config
-  (setq org-ellipsis " ▾"
+    (setq
+	;; Edit settings
+	org-auto-align-tags t
+	org-tags-column 90
+	org-fold-catch-invisible-edits 'show-and-error
+	org-special-ctrl-a/e t
+	org-insert-heading-respect-content t
+
+	;; Org styling, hide markup etc.
 	org-hide-emphasis-markers t
-	org-src-fontify-natively t
-        org-fontify-quote-and-verse-blocks t
-        org-src-tab-acts-natively t
-        org-edit-src-content-indentation 2
-        org-hide-block-startup nil
-        org-src-preserve-indentation nil
-        org-startup-folded 'content
-        org-cycle-separator-lines 2
-        org-enforce-todo-dependencies t
-        org-track-ordered-property-with-tag t
-        org-enforce-todo-checkbox-dependencies t)
+	org-pretty-entities t
+	org-ellipsis "…"
+
+	;; Agenda styling
+	org-agenda-tags-column 0
+	org-agenda-block-separator ?─
+	org-agenda-time-grid
+	'((daily today require-timed)
+	(800 1000 1200 1400 1600 1800 2000)
+	" ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+	org-agenda-current-time-string
+	"◀── now ─────────────────────────────────────────────────"
+        org-enforce-todo-checkbox-dependencies t
+	org-track-ordered-property-with-tag t
+	org-enforce-todo-dependencies t
+	org-startup-folded 'content
+	org-cycle-separator-lines 2
+	)
+
+  ;; test org-modern
+  ;; (setq org-ellipsis " ▾"
+  ;; 	org-hide-emphasis-markers t
+  ;; 	org-src-fontify-natively t
+  ;;       org-fontify-quote-and-verse-blocks t
+  ;;       org-src-tab-acts-natively t
+  ;;       org-edit-src-content-indentation 2
+  ;;       org-hide-block-startup nil
+  ;;       org-src-preserve-indentation nil
+  ;;       org-startup-folded 'content
+  ;;       org-cycle-separator-lines 2
+  ;;       org-enforce-todo-dependencies t
+  ;;       org-track-ordered-property-with-tag t
+  ;;       org-enforce-todo-checkbox-dependencies t)
 
   (org-toggle-pretty-entities) ;; visual display of super- and subscripts
 
@@ -281,11 +320,12 @@ it can be passed in POS."
   (setq org-agenda-skip-scheduled-if-done t)
   (setq org-agenda-start-on-weekday nil))
 
-(use-package org-superstar
-  :after org
-  :init
-  ;; (setq org-superstar-special-todo-items t)
-  :hook (org-mode . (lambda () (org-superstar-mode 1))))
+;; test org-modern
+;; (use-package org-superstar
+;;   :after org
+;;   :init
+;;   ;; (setq org-superstar-special-todo-items t)
+;;   :hook (org-mode . (lambda () (org-superstar-mode 1))))
 
 (require 'ox-md)
 
@@ -460,8 +500,8 @@ it can be passed in POS."
   ;;;; 3. locate-dominating-file
   ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
   ;;;; 4. projectile.el (projectile-project-root)
-  (autoload 'projectile-project-root "projectile")
-  (setq consult-project-function (lambda (_) (projectile-project-root)))
+  ;; (autoload 'projectile-project-root "projectile")
+  ;; (setq consult-project-function (lambda (_) (projectile-project-root)))
   ;;;; 5. No project support
   ;; (setq consult-project-function nil)
 )
@@ -469,14 +509,14 @@ it can be passed in POS."
 (use-package doom-themes
   :after (cl-lib))
 
-(use-package theme-changer
-  :after (doom-themes)
-  :config
-  (setq calendar-latitude 55.75)
-  (setq calendar-longitude 37.61)
-  (setq theme-changer-post-change-functions
-	'((lambda (theme) (mz/set-org-face-attributes))))
-  (change-theme 'doom-opera-light 'doom-one))
+;; (use-package theme-changer
+;;   :after (doom-themes)
+;;   :config
+;;   (setq calendar-latitude 55.75)
+;;   (setq calendar-longitude 37.61)
+;;   (setq theme-changer-post-change-functions
+;; 	'((lambda (theme) (mz/set-org-face-attributes))))
+;;   (change-theme 'doom-opera-light 'doom-one))
 
 ;; https://github.com/hlissner/emacs-doom-themes
 ;; https://github.com/hlissner/emacs-doom-themes/tree/screenshots
@@ -499,9 +539,10 @@ it can be passed in POS."
 (use-package 2048-game
   :commands 2048-game)
 
-(use-package zone
-  :config
-  (zone-when-idle 600))
+;; test restore after my computer awaked up
+;; (use-package zone
+;;   :config
+;;   (zone-when-idle 600))
 
 (use-package vterm
   :commands vterm
@@ -643,6 +684,7 @@ it can be passed in POS."
         ;; lsp-completion-provider :capf
         ;; lsp-idle-delay 0.500)
   (add-to-list 'exec-path "~/.elixir-language-server")
+;;  :hook ((elm-mode elixir-mode go-mode haskell-mode) . #'lsp-deferred)
   :hook ((elm-mode elixir-mode go-mode) . #'lsp-deferred)
          ;; (elixir-mode . #'lsp-deffered)
 	 ;; (java-mode . #'lsp-deferred)
@@ -796,6 +838,34 @@ it can be passed in POS."
 
 (use-package eglot-fsharp)
 
+;; (use-package eldoc-overlay
+;;   :ensure t
+;;   :delight eldoc-overlay-mode
+;;   :custom ((eldoc-overlay-backend 'inline-docs)
+;;            ;; (eldoc-overlay-delay 3)
+;;            )
+;;   :custom-face (inline-docs-border-face ((t (:family "DejaVu Sans Mono"))))
+;;   :hook (eldoc-mode . eldoc-overlay-mode))
+
+(use-package eldoc-box
+  :custom
+  (eldoc-box-max-pixel-width 850))
+
+
+
+(use-package eglot
+  :preface
+  (defun mz/eglot-eldoc ()
+    (setq eldoc-documentation-strategy
+	  'eldoc-documentation-compose-eagerly))
+  :hook ((eglot-managed-mode . mz/eglot-eldoc)
+	 (haskell-mode . eglot-ensure))
+  :custom
+  (eglot-autoshutdown t)
+  )
+
+(add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+
 (use-package deft
   :after org-roam
   :bind
@@ -830,5 +900,143 @@ it can be passed in POS."
   (add-hook 'go-mode-hook #'mz/go-mode-setup)
   (setq-default tab-width 4)
   (setq-default gofmt-command "goimports"))
+
+(use-package haskell-mode
+  :mode "\\.hs\\'"
+  )
+
+;; (use-package lsp-haskell)
+
+;; test org-modern
+(use-package org-modern
+  :config
+  (global-org-modern-mode))
+
+(use-package lua-mode
+    :straight t
+    :mode "\\.lua$"
+    :init
+    (setq lua-indent-level 4))
+
+
+(straight-use-package '(org-similarity :type git :host github :repo
+    "brunoarine/org-similarity" :branch "main"))
+(use-package org-similarity
+	     :init
+	    ;; Directory to scan for possibly similar documents.
+	    ;; org-roam users might want to change it to `org-roam-directory'.
+	    (setq org-similarity-directory "~/Documents/Org/Roam")
+
+	    ;; Filename extension to scan for similar text. By default, it will
+            ;; only scan Org-mode files, but you can change it to scan other
+            ;; kind of files as well.
+            (setq org-similarity-file-extension-pattern "*.org")
+
+	    ;; Changing this value will impact stopwords filtering and word stemmer.
+	    ;; The following languages are supported: Arabic, Danish, Dutch, English, Finnish,
+            ;; French, German, Hungarian, Italian, Norwegian, Portuguese, Romanian, Russian,
+            ;; Spanish and Swedish.
+            (setq org-similarity-language "russian")
+
+	    ;; Algorithm to use when generating the scores list. The possible choices are
+	    ;; `tfidf' or `bm25'. Default is `tfidf' and it generally works better in
+            ;; most cases. However, `bm25' may be a bit more robust in rare cases, depending
+            ;; on the size of your notes.
+            (setq org-similarity-algorithm "tfidf")
+
+            ;; How many similar entries to list at the end of the buffer.
+            (setq org-similarity-number-of-documents 10)
+
+	    ;; Minimum document size (in number of characters) to be included in the corpus.
+            ;; It includes every character, including the file properties drawer.
+            ;; Default is 0 (include all documents, even empty ones).
+            (setq org-similarity-min-chars 0)
+
+            ;; Whether to prepend the list entries with similarity scores.
+            (setq org-similarity-show-scores 't)
+
+	    ;; Similarity score threshold. All results with a similarity score below this
+            ;; value will be omitted from the final list.
+            ;; Default is 0.05.
+            (setq org-similarity-threshold 0.05)
+
+	    ;; Whether the resulting list of similar documents will point to ID property or
+            ;; filename. Default is nil.
+            ;; However, I recommend setting it to `t' if you use `org-roam' v2.
+            (setq org-similarity-use-id-links 't)
+
+            ;; Scan for files inside `org-similarity-directory' recursively.
+            (setq org-similarity-recursive-search nil)
+
+	    ;; Filepath to a custom Python interpreter (e.g. '/path/to/venv/bin/python'
+	    ;; If the package's requirements aren't met, `org-similarity' will try to
+	    ;; install or upgrade them automatically. If `nil', the package will create
+	    ;; and use a virtual environment in the same directory where `org-similarity'
+	    ;; is located (usually `~/.emacs.d/.local' if you installed via a package
+            ;; manager, or in the path where you cloned this repo and loaded the package
+            ;; manually).
+            (setq org-similarity-custom-python-interpreter "/usr/bin/python3")
+
+	    ;; Remove first result from the scores list. Useful if the current buffer is
+            ;; saved in the searched directory, and you don't want to see it included
+            ;; in the list. Default is nil."
+            (setq org-similarity-remove-first nil)
+
+            ;; Text to show in the list heading. You can set it to "" if you
+            ;; wish to hide the heading altogether.
+            (setq org-similarity-heading "** Related notes")
+
+	    ;; String to prepend the list items. You can set it to "* " to turn each
+            ;; item into org headings, or "- " to turn them into an unordered org list.
+            ;; Set the variable to "" to hide prefixes.
+            (setq org-similarity-prefix "- ")
+
+	    ;; Ignore org front-matter when calculating similarity scores.  This option can
+	    ;; be useful if you think the results are inappropriately biased due to the
+            ;; presence of some values in the the Org files' Properties drawer, like
+            ;; filetags or categories.
+            (setq org-similarity-ignore-frontmatter nil))
+
+(use-package consult-org-roam
+   :ensure t
+   :after org-roam
+   :init
+   (require 'consult-org-roam)
+   ;; Activate the minor mode
+   (consult-org-roam-mode 1)
+   :custom
+   ;; Use `ripgrep' for searching with `consult-org-roam-search'
+   (consult-org-roam-grep-func #'consult-ripgrep)
+   ;; Configure a custom narrow key for `consult-buffer'
+   (consult-org-roam-buffer-narrow-key ?r)
+   ;; Display org-roam buffers right after non-org-roam buffers
+   ;; in consult-buffer (and not down at the bottom)
+   (consult-org-roam-buffer-after-buffers t)
+   :config
+   ;; Eventually suppress previewing for certain functions
+   (consult-customize
+    consult-org-roam-forward-links
+    :preview-key "M-.")
+   :bind
+   ;; Define some convenient keybindings as an addition
+   ("C-c n e" . consult-org-roam-file-find)
+   ("C-c n b" . consult-org-roam-backlinks)
+   ("C-c n B" . consult-org-roam-backlinks-recursive)
+   ("C-c n l" . consult-org-roam-forward-links)
+   ("C-c n r" . consult-org-roam-search))
+
+
+(use-package rust-mode
+  :custom
+  (rust-format-on-save t))
+
+(use-package rust-ts-mode)
+
+(add-to-list 'eglot-server-programs
+             '((rust-ts-mode rust-mode) .
+               ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+
+(use-package org-recoll)
+(use-package consult-recoll)
 
 (provide 'config-packages)
