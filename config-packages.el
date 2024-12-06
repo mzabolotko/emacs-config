@@ -172,6 +172,22 @@ it can be passed in POS."
   (add-hook 'org-agenda-mode-hook #'hack-dir-local-variables-non-file-buffer)
   (add-hook 'org-mode-hook #'mz/org-mode-setup)
   (add-hook 'before-save-hook #'mz/org-set-last-modified)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((dot . t)
+     (plantuml . t)))
+  :hook
+  (org-babel-after-execute . org-redisplay-inline-images)
+  :custom
+  (org-edit-src-content-indentation 0)
+  (org-plantuml-jar-path
+   (expand-file-name "~/.emacs.d/plantuml.jar"))
+  (org-confirm-babel-evaluate nil)
+  (org-latex-pdf-process
+   '("%latex -shell-escape -interaction nonstopmode -output-directory %o %f"
+     "bibtex %b"
+     "%latex -shell-escape -interaction nonstopmode -output-directory %o %f"
+     "%latex -shell-escape -interaction nonstopmode -output-directory %o %f"))
   :config
     (setq
 	;; Edit settings
