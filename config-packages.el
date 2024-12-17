@@ -175,6 +175,7 @@ it can be passed in POS."
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((dot . t)
+     (shell  . t)
      (plantuml . t)))
   :hook
   (org-babel-after-execute . org-redisplay-inline-images)
@@ -337,11 +338,11 @@ it can be passed in POS."
   (setq org-agenda-start-on-weekday nil))
 
 ;; test org-modern
-;; (use-package org-superstar
-;;   :after org
-;;   :init
-;;   ;; (setq org-superstar-special-todo-items t)
-;;   :hook (org-mode . (lambda () (org-superstar-mode 1))))
+(use-package org-superstar
+  :after org
+  :init
+  ;; (setq org-superstar-special-todo-items t)
+  :hook (org-mode . (lambda () (org-superstar-mode 1))))
 
 (require 'ox-md)
 
@@ -350,6 +351,15 @@ it can be passed in POS."
 (use-package emacsql-sqlite)
 
 (use-package magit-section)
+
+(defun mz/get-org-roam-back-link (file)
+  (let (link)
+    (when file
+      (with-current-buffer
+	  (get-file-buffer file)
+	(org-link-make-string
+	 (concat "id:" (org-entry-get 1 "ID"))
+	 (org-roam-node-title (org-roam-node-from-id (org-entry-get 1 "ID"))))))))
 
 (use-package org-roam
   :after (dash f org emacsql emacsql-sqlite magit-section)
@@ -361,7 +371,12 @@ it can be passed in POS."
   (org-roam-capture-templates
     '(("d" "default" plain "%?" :if-new
        (file+head "%<%Y%m%d%H%M%S>.org" "#+TITLE: ${title}\n#+CREATED: %U\n#+LAST_MODIFIED: %U\n#+ROAM_ALIASES: \n#+FILETAGS: ")
-       :unnarrowed t)))
+       :unnarrowed t)
+    ("e" "entry" entry "%i"
+      :target (file+head
+		    "%<%Y%m%d%H%M%S>.org"
+		    "#+TITLE: ${title}\n#+CREATED: %U\n#+LAST_MODIFIED: %U\n#+ROAM_ALIASES: \n#+FILETAGS: \n\nsource::%(mz/get-org-roam-back-link (org-capture-get :original-file))\n\n")
+		    :unnarrowed t)))
 
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
@@ -924,9 +939,9 @@ it can be passed in POS."
 ;; (use-package lsp-haskell)
 
 ;; test org-modern
-(use-package org-modern
-  :config
-  (global-org-modern-mode))
+;; (use-package org-modern
+;;   :config
+;;   (global-org-modern-mode))
 
 (use-package lua-mode
     :straight t
