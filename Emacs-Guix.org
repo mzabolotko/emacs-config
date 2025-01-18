@@ -1,0 +1,1540 @@
+* Конфигурация Emacs и пакетов Guix
+** Требования
+Должен быть установлен пакетный менеджер Guix.
+
+Все скрипты сохраняются в директорию ~~/.config/emacs-guix/~.
+Для подключения скриптов в файл ~~/.emacs~ необходимо добавить следущую строчку
+~(load "~/.config/emacs-guix/init.el")~.
+
+Пакетный менеджер отвчеат за загрузку пакетов на машину. Скрипты ниже конфигурируют пакеты во время запуска Emacs.
+
+** Расширение пути загрузки файлов
+
+Установка переменной для отображения загружаемых пакетов.
+Пакеты загружаются с помощью Guix. Для этого по пути размещения пакетов находится файл ~start-site.el~, который загружает пакет ~guix-emacs~, который тоже находится в директории размещения пакетов и выполняет загрузку всех остальных пакетов.
+
+Переменная ~force-load-messages~ используется для указания необходимости вывода информации о загружаемых пакетах.
+Нужно расскоментировать установку этой переменной, чтобы включить отображения загружемых модулей (может пригодиться при диагностике проблем загрузки файлов).
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+;; (setq force-load-messages 't)
+
+#+end_src
+
+~load-path~ - список директорий, в которых выполняется поиск файлов для загрузки.
+Каждый элемент списка это имя директории или ~nil~ в случае директории по умолчанию.
+Этот список используется функцией ~require~.
+В список заносится путь, где находятся все файлы конфигурации.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(add-to-list 'load-path (expand-file-name "~/.config/emacs-guix"))
+
+#+end_src
+
+Пакеты всегда должны быть скачены.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(setq use-package-always-ensure nil)
+
+#+end_src
+
+
+
+** Файл пользовательской конфигурации
+Устанавливается имя файла для хранения пользовательской конфигурации.
+Для этого используется переменная ~custom-file~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(setq custom-file "~/.config/emacs-guix/config-custom.el")
+(if (file-exists-p custom-file)
+  (load custom-file))
+
+#+end_src
+
+** Запуск Emacs как сервер
+Emacs запускается как сервер, чтобы делиться общими настройками со всеми ~emacsclient~.
+Ниже выполняется проверка, что Emacs не запущен как сервер и если проверка успешна, то Emacs запускается как сервер.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(use-package server
+  :ensure nil
+  :config
+  (unless (server-running-p)
+  (server-start)))
+
+#+end_src
+
+** Настройки календаря
+
+Настройки календаря касаются локализации и настроек отображения.
+Установка первого дня недели в календаре.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-calendar.el :mkdirp yes
+
+(setq calendar-week-start-day 1)
+
+#+end_src
+
+Установка текста с номером недели в году слева от каждого месяца в календаре.
+Для номеров недели используется шрифт, который используется для выделения - ~'font-lock-warning-face~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-calendar.el :mkdirp yes
+
+(setq calendar-intermonth-text
+      '(propertize
+        (format "%2d"
+                (car
+                 (calendar-iso-from-absolute
+                 (calendar-absolute-from-gregorian (list month day year)))))
+        'font-lock-face 'font-lock-warning-face))
+
+#+end_src
+
+Установка текста заголовка слева от каждого месяца в календаре для отображения номера недели. Используется шрифт для отображения ключевых слов.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-calendar.el :mkdirp yes
+
+(setq calendar-intermonth-header
+      (propertize "НН"
+                  'font-lock-face 'font-lock-keyword-face))
+
+#+end_src
+
+Установка русской локализации для названий дней недели и месяцев.
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-calendar.el :mkdirp yes
+
+(setq calendar-day-name-array
+      ["Восресенье" "Понедельник"
+       "Вторник" "Среда"
+       "Четверг" "Пятница"
+       "Суббота"]
+      calendar-day-header-array
+      ["Вс" "Пн"
+       "Вт" "Ср"
+       "Чт" "Пт"
+       "Сб"]
+      calendar-month-name-array
+      ["Январь" "Февраль" "Март"
+       "Апрель" "Май" "Июнь"
+       "Июль" "Август" "Сентябрь"
+       "Октябрь" "Ноябрь" "Декабрь"])
+
+#+end_src
+
+Регистрация в виде модуля ~config-calendar~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-calendar.el :mkdirp yes
+
+(provide 'config-calendar)
+
+#+end_src
+
+** Настройки управления файлами
+Меняются настройки по умаолчанию для манипуляции с файлами.
+
+*** Настройка места хранения файлов для восстановления
+В переменной ~backup-directory-alist~ указывается ассоциативный массив, где ключом каждой пары является регулярное выражение, а значением директория, куда сохраняется файл для восстановления, имя которого подходит под регулярное выражение.
+Все файлы для восстановления сохраняются в директорию ~/tmp/~, которая устанвилвается через переменную ~temporary-file-directory~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-file.el :mkdirp yes
+
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+
+#+end_src
+
+Устанавливается правило преобразования имён файлов при сохранении буферов. Все автосохраняемые файлы сохраняются в директорию временных файлов независимо от того, где они изначально находились.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-file.el :mkdirp yes
+
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+
+#+end_src
+
+*** Настройка правил работы с удаляемыми файлами
+
+Удаляемые файлы отправляются в системную мусорную корзину.
+Этому правилу подчиняется интерактивный вызов удаления файла или директории.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-file.el :mkdirp yes
+
+(setq delete-by-moving-to-trash t)
+
+#+end_src
+
+*** Отключение блокировки файла
+
+Отключение функционала создания файлов блокировки для защиты от коллизий редактирования.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-file.el :mkdirp yes
+
+(setq create-lockfiles nil)
+
+#+end_src
+
+*** Регистрация модуля ~config-file~
+
+Регистрация в виде модуля ~config-file~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-file.el :mkdirp yes
+
+(provide 'config-file)
+
+#+end_src
+
+
+** Настройка ввода
+
+Общие настройки для ввода.
+Создание переменной для хранения размера шрифта.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-input.el :mkdirp yes
+(setq mz/default-font-height 180)
+#+end_src
+
+Устанавливается семейство шрифтов ~Iosevka Comfy~ как шрифт по умолчанию.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-input.el :mkdirp yes
+(if (find-font (font-spec :name "Iosevka Comfy"))
+    (set-face-attribute 'default nil :font "Iosevka Comfy" :height mz/default-font-height))
+#+end_src
+
+Для шрифта с фиксированным шагом устанавливается шрифт ~Iosevka Comfy~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-input.el :mkdirp yes
+(if (find-font (font-spec :name "Iosevka Comfy"))
+    (set-face-attribute 'fixed-pitch nil
+			:font "Iosevka Comfy"
+			:weight 'regular
+			:height mz/default-font-height))
+#+end_src
+
+Для шрифта с изменяемым шагом устанавливается шрифт ~Iosevka Comfy Duo~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-input.el :mkdirp yes
+(if (find-font (font-spec :name "Iosevka Comfy Duo"))
+    (set-face-attribute 'variable-pitch nil
+			:font "Iosevka Comfy Duo"
+			:height mz/default-font-height
+			:weight 'regular))
+#+end_src
+
+Установка метода ввода по умолчанию (переключение ввода осуществляется командой ~toggle-input-method~ привязанной к ~C-\~).
+Метод ввода для буфера по умолчанию - русский.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-input.el :mkdirp yes
+(setq default-input-method "russian-computer")
+#+end_src
+
+Установка кодировки по умолчанию для новых создаваемых файлов и процессов ввода/вывода - UTF-8.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-input.el :mkdirp yes
+(set-default-coding-systems 'utf-8)
+#+end_src
+
+Включение мигания фрейма для отображения сигнала звонка.
+Установка функции для воспроизведения звонка - функция, которая ничего не делает.
+Таким образом сигнал звонка заменяется на мигание рамки без звукового сигнала.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-input.el :mkdirp yes
+(setq visible-bell 1)
+(setq ring-bell-function 'ignore)
+#+end_src
+
+Регистрация модуля ~config-input~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-input.el :mkdirp yes
+(provide 'config-input)
+#+end_src
+
+** Настройки буфера
+
+Общие настройки для каждого буфера.
+
+Отключается глобальное отображение номеров строк.
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(global-display-line-numbers-mode nil)
+#+end_src
+
+Устанавливается относительное отображение номера строки: вверх и вниз от текущей строки номера отображаются по возрастанию относительно текущей строки.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(setq display-line-numbers-type 'relative)
+#+end_src
+
+Текущая строка отображается своим номером, т.к. при увеличении шрифта шрифт обунлённой текущей строки не изменяется, и текст начинает прыгать (пока не использую параметр ~display-line-numbers-current-absolute nil~)
+
+Номера строк показываются относительн начала буфера без учёта сужения.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(setq display-line-numbers-widen 't)
+#+end_src
+
+Выделение определённого номера строки с помощью параметра ~display-line-numbers-minor-tick~ работает плохо: при увеличении шрифта, выделенная строка не увеличивает шрифт для номера строки, поэтому текст начинает прыгать. С учётом этого, данный параметр не использую.
+
+Включается режим отображения номеров строк (не глобальный вариант).
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(display-line-numbers-mode 1)
+#+end_src
+
+Включено отображение совпадающих скобок.
+Отображаются только совпадающие скобки, можно включить отображение выржаения включённого в скобки или всё вместе.
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(show-paren-mode t)
+#+end_src
+
+Устанавливаются настройки табуляции, которые используются командой ~tab-to-tab-stop~ (~M-i~).
+Для этого генерируется последовательность от 4 до 120 с шагом 4.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(setq tab-stop-list (number-sequence 4 120 4))
+#+end_src
+
+Включается режим отображения номеров колонки в строке состояния.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(column-number-mode)
+#+end_src
+
+Для всех режимов программирования регистрируется хук, который включет режим отображения номеров строк.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(defun mz/enable-display-line-numbers-hook ()
+  "Включает отображение номеров строк для режимов программирования."
+  (when (derived-mode-p 'prog-mode)
+    (display-line-numbers-mode 1)))
+
+(add-hook 'prog-mode-hook #'mz/enable-display-line-numbers-hook)
+#+end_src
+
+Включение подсветки текущей строки в буферах.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(global-hl-line-mode 1)
+#+end_src
+
+Удаление завершающих пробелов при сохранении буфера.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(add-hook 'before-save-hook (lambda() (delete-trailing-whitespace)))
+#+end_src
+
+Не переносить строки, если они не вмещаются на экране.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(setq-default truncate-lines t)
+#+end_src
+
+Установка укороченного ответа на запросы потверждения в минифуфере в форме: 'y' или 'n'.
+~SPC~ воспринимается как ответ 'y', а ~DEL~ как ответ 'n'.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+Удаление назойливых запросов подтверждения, когда используются команды ~C-x C-f~ или ~C-x b~ для не существующего буфера или файла.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(setq confirm-nonexistent-file-or-buffer nil)
+#+end_src
+
+Список функций, которые вызываются при закрытии буфера, устанавливается в переменной ~kill-buffer-query-functions~.
+Функция ~process-kill-buffer-query-function~ обычно спрашивает у пользователя подтверждение перед закрытием буфера, связанного с процессом (например, буфер shell, compilation и т.п.).
+Удаляя ее из списка ~kill-buffer-query-functions~, исключается необходимость подтверждения закрытия таких буферов.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(setq kill-buffer-query-functions
+      (remq 'process-kill-buffer-query-function
+	    kill-buffer-query-functions))
+#+end_src
+
+Конфигурируется добавление новой строки при сохранении файла.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(setq require-final-newline t)
+#+end_src
+
+Конфигурируется минорный режим переключения между окнами.
+Если всего два окна, то вызывается функция ~other-window~.
+Если окон больше, тогда вызывается диспетчер, который на помечает каждое окно уникальным символом.
+Набирая символ на клавиатуре, происходит переключение на указанное окно.
+
+Чтобы поменять окно местами, можно вызвать переключение с префиксом ~C-u~.
+Чтобы удалить выбранное окно, можно вызвать переключение с двойным префиксом - ~C-u C-u~.
+
+Переключение между окнами привязывается к ~M-o~.
+Область действия переключения (~aw-scope~) распространяется на все фреймы (~global~).
+Для переключения между окнами (~aw-keys~) устанавливаются следующие символы в качестве меток: ~a~, ~s~, ~d~, ~f~, ~g~, ~h~, ~j~, ~k~, ~l~.
+
+В минибуфере отображается строка помощи, когда ~ace-window~ активен (~aw-minibuffer-flag~).
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(use-package ace-window
+  :ensure nil
+  :bind (("M-o" . ace-window))
+  :custom
+  (aw-scope 'global)
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-minibuffer-flag t)
+  :config
+  (ace-window-display-mode 1))
+#+end_src
+
+Установка редактирования несколькими курсорами.
+Для вызова нескольких курсоров нужно вызвать нужную функцию с префиксом ~mc/~.
+Например,
+~mc/mark-pop~ - установить курсор в текущей точке и перейти к следующей позиции в стеке меток. Это позволяет точно управлять расположением курсором.
+~mc/mark-all-like-this~ - установить курсор во все части буфера, соответстующие текущей области.
+
+Отменить множественные курсоры можно нажав ~<return>~ или ~C-g~. Перевести множественные курсоры на новую строку можно нажав ~C-j~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(use-package multiple-cursors
+  :ensure nil)
+#+end_src
+
+Замена отображения ~^L~ на горизонтальную линию.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(use-package page-break-lines
+  :ensure nil)
+#+end_src
+
+Включаетя поддержка emoji. Emoji могут отображаться как PNG картинка или как Unicode символ.
+По умолчанию режим выключен. Чтобы активировать его нужно вызвать команду ~emojify-mode~.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-buffer.el :mkdirp yes
+(use-package emojify
+  :ensure nil
+  :commands emojify-mode)
+
+(provide 'config-buffer)
+#+end_src
+
+
+** TODO Настройки минибуфера
+
+Общие настройки отображения информации в минибуфере.
+
+Включение отображения дополнительной информации об элементах в минибуфере.
+Отображаемая информация не изменяется, может измениться только её способ отображения.
+Переключать аннотации можно через комбинацию ~M-A~.
+
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-minibuffer.el :mkdirp yes
+(use-package marginalia
+  :ensure nil
+  :bind (:map minibuffer-local-map
+	 ("M-A" . marginalia-cycle))
+  :init
+  (marginalia-mode))
+#+end_src
+
+Подключение иконок из пакета ~nerd-icons~ для отображения в минифуере вместе с дополнительной информацией пакета ~marginalia~.
+Используется пакет https://github.com/rainstormstudio/nerd-icons-completion.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-minibuffer.el :mkdirp yes
+(use-package nerd-icons-completion
+  :ensure nil
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+#+end_src
+
+Включение дополнительных действий над выбранным элементом в буфере или минибуфере с помощью команды ~C-.~
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-minibuffer.el :mkdirp yes
+(use-package embark
+  :ensure nil
+  :bind
+  (("C-." . embark-act)))
+#+end_src
+
+Конфигурирование минибуфера для отображения вариантов выбора в вертикальном варианте.
+Используется пакет Vertico (https://github.com/minad/vertico).
+Включается возможность менять размер минибуфера для вывода вариантов выбора (~vertico-resize~).
+Включается возможность циклически перебирать варианты выбора (~vertico-cycle~).
+
+Включён режим отображения в отдельном буфере (~vertico-multiform-mode~) результатов следующих команд:
+- ~consult-line~
+- ~consult-imenu~
+- ~consult-grep~
+
+Можно переключить режим отображения результатов:
+- ~M-B~ - отображение в отдельном буфере;
+- ~M-F~ - отображение в минибуфере в плоском виде;
+- ~M-G~ - отображение в минибуфере в секте;
+- ~M-R~ - отображение строки ввода внизу минибуфера;
+- ~M-U~ - отображение минимального выбра в минибуфере;
+- ~M-V~ - отображение в минифере в вертикальном варианте.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-minibuffer.el :mkdirp yes
+(use-package vertico
+  :ensure nil
+  :custom
+  (vertico-resize t)
+  (vertico-cycle t)
+  :config
+  (vertico-mode)
+  (setq vertico-multiform-commands
+	'((consult-line reverse buffer)
+	  (consult-imenu reverse buffer)
+	  (consult-grep reverse buffer)))
+  (vertico-multiform-mode))
+#+end_src
+
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-minibuffer.el :mkdirp yes
+
+;; Optionally use the `orderless' completion style. See
+;; `+orderless-dispatch' in the Consult wiki for an advanced Orderless style
+;; dispatcher. Additionally enable `partial-completion' for file path
+;; expansion. `partial-completion' is important for wildcard support.
+;; Multiple files can be opened at once with `find-file' if you enter a
+;; wildcard. You may also give the `initials' completion style a try.
+(use-package orderless
+  :ensure nil
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-styles '(orderless basic)
+	completion-category-defaults nil
+	completion-category-overrides '((file (styles . (partial-completion))))))
+
+;; Example configuration for Consult
+(use-package consult
+  :ensure nil
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (;; C-c bindings in `mode-specific-map'
+	 ("C-c M-x" . consult-mode-command)
+	 ("C-c h" . consult-history)
+	 ("C-c k" . consult-kmacro)
+	 ("C-c m" . consult-man)
+	 ("C-c i" . consult-info)
+	 ([remap Info-search] . consult-info)
+	 ;; C-x bindings in `ctl-x-map'
+	 ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+	 ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+	 ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+	 ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+	 ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+	 ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+	 ;; Custom M-# bindings for fast register access
+	 ("M-#" . consult-register-load)
+	 ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+	 ("C-M-#" . consult-register)
+	 ;; Other custom bindings
+	 ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+	 ;; M-g bindings in `goto-map'
+	 ("M-g e" . consult-compile-error)
+	 ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+	 ("M-g g" . consult-goto-line)             ;; orig. goto-line
+	 ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+	 ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+	 ("M-g m" . consult-mark)
+	 ("M-g k" . consult-global-mark)
+	 ("M-g i" . consult-imenu)
+	 ("M-g I" . consult-imenu-multi)
+	 ;; M-s bindings in `search-map'
+	 ("M-s d" . consult-find)
+	 ("M-s D" . consult-locate)
+	 ("M-s g" . consult-grep)
+	 ("M-s G" . consult-git-grep)
+	 ("M-s r" . consult-ripgrep)
+	 ("M-s l" . consult-line)
+	 ("M-s L" . consult-line-multi)
+	 ("M-s k" . consult-keep-lines)
+	 ("M-s u" . consult-focus-lines)
+	 ;; Isearch integration
+	 ("M-s e" . consult-isearch-history)
+	 :map isearch-mode-map
+	 ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+	 ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+	 ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+	 ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+	 ;; Minibuffer history
+	 :map minibuffer-local-map
+	 ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+	 ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI.
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+
+  ;; Optionally configure the register formatting. This improves the register
+  ;; preview for `consult-register', `consult-register-load',
+  ;; `consult-register-store' and the Emacs built-ins.
+  (setq register-preview-delay 0.5
+	register-preview-function #'consult-register-format)
+
+  ;; Optionally tweak the register preview window.
+  ;; This adds thin lines, sorting and hides the mode line of the window.
+  (advice-add #'register-preview :override #'consult-register-window)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+	xref-show-definitions-function #'consult-xref)
+
+  ;; Configure other variables and modes in the :config section,
+  ;; after lazily loading the package.
+  :config
+
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key "M-.")
+  ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   ;; :preview-key "M-."
+   :preview-key '(:debounce 0.4 any))
+
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; "C-+"
+
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+  ;; By default `consult-project-function' uses `project-root' from project.el.
+  ;; Optionally configure a different project root function.
+	;;;; 1. project.el (the default)
+  ;; (setq consult-project-function #'consult--default-project--function)
+	;;;; 2. vc.el (vc-root-dir)
+  ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
+	;;;; 3. locate-dominating-file
+  ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
+	;;;; 4. projectile.el (projectile-project-root)
+  ;; (autoload 'projectile-project-root "projectile")
+  ;; (setq consult-project-function (lambda (_) (projectile-project-root)))
+	;;;; 5. No project support
+  ;; (setq consult-project-function nil)
+  )
+
+(use-package which-key
+  :ensure nil
+  :init (which-key-mode)
+  :config
+  (setq which-key-idle-delay 0.3))
+
+(use-package savehist
+  :ensure nil
+  :config
+  (savehist-mode 1))
+
+(provide 'config-minibuffer)
+#+end_src
+
+
+** TODO Настройка строки состояния
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-statusbar.el :mkdirp yes
+
+(use-package anzu
+  :ensure nil
+  :after isearch
+  :config
+  (global-anzu-mode))
+
+
+(use-package nerd-icons
+  :ensure nil)
+
+(use-package shrink-path
+  :ensure nil)
+
+(use-package doom-modeline
+  :ensure nil
+  :after
+  (nerd-icons shrink-path)
+  :custom
+  (doom-modeline-height 20)
+  (doom-modeline-buffer-file-name-style 'truncate-all)
+  (doom-modeline-buffer-encoding t)
+  (doom-modeline-vcs-max-length 20)
+  :custom-face
+	    (mode-line-highlight ((t (:inherit doom-modeline-bar :foreground "black"))))
+	    (doom-modeline-buffer-path ((t (:inherit font-lock-comment-face :slant normal))))
+    :config
+	    (column-number-mode)
+    :init
+	    (doom-modeline-mode))
+
+  (setq display-time-24hr-format 't)
+  (display-time)
+
+  (provide 'config-statusbar)
+
+#+end_src
+
+
+
+
+** TODO Поиск файлов
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-search.el :mkdirp yes
+  (use-package ripgrep
+    :ensure nil)
+
+  (use-package deadgrep
+    :ensure nil
+    :commands deadgrep
+    :bind  (:map deadgrep-mode-map
+	("C-c C-e" . deadgrep-edit-mode)))
+
+
+  (provide 'config-search)
+
+
+#+end_src
+
+
+** TODO Темы
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-themes.el :mkdirp yes
+
+(use-package doom-themes
+  :ensure nil)
+(use-package spacegray-theme
+  :ensure nil)
+(use-package modus-themes
+  :ensure nil)
+(use-package cyberpunk-theme
+  :ensure nil)
+(use-package ample-theme
+  :ensure nil)
+(use-package moe-theme
+  :ensure nil)
+(use-package alect-themes
+  :ensure nil)
+(use-package afternoon-theme
+  :ensure nil)
+
+(provide 'config-themes)
+
+#+end_src
+
+
+** TODO Настройка Org
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-org.el :mkdirp yes
+
+  (defun mz/org-mode-setup ()
+    (org-indent-mode)
+    ;; (variable-pitch-mode 1)
+    (auto-fill-mode 0)
+    (visual-line-mode 1)
+    ;; test org-modern
+    ;; (mz/set-org-face-attributes)
+    ;; (diminish org-indent-mode)
+    ;; (global-linum-mode 0) - https://github.com/emacsorphanage/git-gutter/pull/222
+    (global-display-line-numbers-mode nil))
+
+  ;; --------------------------
+  ;; Handling file properties for ‘CREATED’ & ‘LAST_MODIFIED’
+  ;; from https://github.com/zaeph/.emacs.d/blob/4548c34d1965f4732d5df1f56134dc36b58f6577/init.el#L2822-L2875
+  ;;      https://org-roam.discourse.group/t/update-a-field-last-modified-at-save/321
+  ;; --------------------------
+  (defun mz/org-find-time-file-property (property &optional anywhere)
+  "Return the position of the time file PROPERTY if it exists.
+  When ANYWHERE is non-nil, search beyond the preamble."
+    (save-excursion
+      (goto-char (point-min))
+      (let ((first-heading
+	     (save-excursion
+	       (re-search-forward org-outline-regexp-bol nil t))))
+	(when (re-search-forward (format "^#\\+%s:" property)
+				 (if anywhere nil first-heading)
+				 t)
+	  (point)))))
+
+  (defun mz/org-has-time-file-property-p (property &optional anywhere)
+  "Return the position of time file PROPERTY if it is defined.
+  As a special case, return -1 if the time file PROPERTY exists but
+  is not defined."
+    (when-let ((pos (mz/org-find-time-file-property property anywhere)))
+      (save-excursion
+	(goto-char pos)
+	(if (and (looking-at-p " ")
+		 (progn (forward-char)
+			(org-at-timestamp-p 'lax)))
+	    pos
+	  -1))))
+
+  (defun mz/org-set-time-file-property (property &optional anywhere pos)
+  "Set the time file PROPERTY in the preamble.
+  When ANYWHERE is non-nil, search beyond the preamble.
+  If the position of the file PROPERTY has already been computed,
+  it can be passed in POS."
+    (when-let ((pos (or pos
+			(mz/org-find-time-file-property property))))
+      (save-excursion
+	(goto-char pos)
+	(if (looking-at-p " ")
+	    (forward-char)
+	  (insert " "))
+	(delete-region (point) (line-end-position))
+	(let* ((now (format-time-string "[%Y-%m-%d %a %H:%M]")))
+	  (insert now)))))
+
+  (defun mz/org-set-last-modified ()
+    "Update the LAST_MODIFIED file property in the preamble."
+    (when (derived-mode-p 'org-mode)
+      (mz/org-set-time-file-property "LAST_MODIFIED")))
+
+
+      (use-package org
+	  :ensure nil
+	  :hook ((org-agenda-mode . hack-dir-local-variables-non-file-buffer)
+		 (org-mode . mz/org-mode-setup)
+		 (before-save . mz/org-set-last-modified))
+	  :init
+	  (add-hook 'org-agenda-mode-hook #'hack-dir-local-variables-non-file-buffer)
+	  (add-hook 'org-mode-hook #'mz/org-mode-setup)
+	  (add-hook 'before-save-hook #'mz/org-set-last-modified)
+	  (org-babel-do-load-languages
+	   'org-babel-load-languages
+	   '((dot . t)
+	     (shell  . t)
+	     (plantuml . t)))
+	  :hook
+	  (org-babel-after-execute . org-redisplay-inline-images)
+	  :custom
+	  (org-edit-src-content-indentation 0)
+	  (org-plantuml-jar-path
+	   (expand-file-name "~/.emacs.d/plantuml.jar"))
+	  (org-confirm-babel-evaluate nil)
+	  (org-latex-pdf-process
+	   '("%latex -shell-escape -interaction nonstopmode -output-directory %o %f"
+	     "bibtex %b"
+	     "%latex -shell-escape -interaction nonstopmode -output-directory %o %f"
+	     "%latex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+	  :config
+	    (setq
+		;; Edit settings
+		org-auto-align-tags t
+		org-tags-column 90
+		org-fold-catch-invisible-edits 'show-and-error
+		org-special-ctrl-a/e t
+		org-insert-heading-respect-content t
+
+		;; Org styling, hide markup etc.
+		org-hide-emphasis-markers t
+		org-pretty-entities t
+		org-ellipsis "…"
+
+		;; Agenda styling
+		org-agenda-tags-column 0
+		org-agenda-block-separator ?─
+		org-agenda-time-grid
+		'((daily today require-timed)
+		(800 1000 1200 1400 1600 1800 2000)
+		" ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+		org-agenda-current-time-string
+		"◀── now ─────────────────────────────────────────────────"
+		org-enforce-todo-checkbox-dependencies t
+		org-track-ordered-property-with-tag t
+		org-enforce-todo-dependencies t
+		org-startup-folded 'content
+		org-cycle-separator-lines 2
+		)
+
+	  ;; test org-modern
+	  ;; (setq org-ellipsis " ▾"
+	  ;; 	org-hide-emphasis-markers t
+	  ;; 	org-src-fontify-natively t
+	  ;;       org-fontify-quote-and-verse-blocks t
+	  ;;       org-src-tab-acts-natively t
+	  ;;       org-edit-src-content-indentation 2
+	  ;;       org-hide-block-startup nil
+	  ;;       org-src-preserve-indentation nil
+	  ;;       org-startup-folded 'content
+	  ;;       org-cycle-separator-lines 2
+	  ;;       org-enforce-todo-dependencies t
+	  ;;       org-track-ordered-property-with-tag t
+	  ;;       org-enforce-todo-checkbox-dependencies t)
+
+	  (org-toggle-pretty-entities) ;; visual display of super- and subscripts
+
+	  (global-set-key "\C-cl" 'org-store-link)
+	  (global-set-key "\C-ca" 'org-agenda)
+
+	  (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+
+	  (setq org-agenda-custom-commands
+		'(("s" "Текущий спринт"
+		   ((tags-todo "LEVEL>2+@work+sprint/WAITING"
+			       ((org-agenda-overriding-header "\nТекущий спринт. В ожидании\n")
+				(org-agenda-block-separator nil)
+				(org-agenda-prefix-format "")))
+		    (tags-todo "LEVEL>2+@work+sprint/NEXT"
+			       ((org-agenda-overriding-header "\nТекущий спринт. Следующие задачи\n")
+				(org-agenda-block-separator nil)
+				(org-agenda-prefix-format "")))
+		    (tags-todo "LEVEL>2+@work+sprint+TODO=\"IN-PROGRESS\""
+			       ((org-agenda-overriding-header "\nТекущий спринт. В работе\n")
+				(org-agenda-block-separator nil)
+				(org-agenda-prefix-format "")))
+		    (tags-todo "LEVEL=2+@work+sprint+TODO=\"PROJ\""
+			       ((org-agenda-overriding-header "\nТекущий спринт. Проекты\n")
+				(org-agenda-block-separator nil)
+				(org-agenda-remove-tags 't)
+				(org-agenda-prefix-format "")))
+		    (agenda "" ((org-agenda-span 7)
+				(org-agenda-prefix-format "%-12:c%?-12t% s")
+				(org-deadline-warning-days 0)
+				(org-agenda-block-separator nil)
+				(org-scheduled-past-days 0)
+			      ;; We don't need the `org-agenda-date-today'
+			      ;; highlight because that only has a practical
+			      ;; utility in multi-day views.
+				(org-agenda-day-face-function (lambda (date) 'org-agenda-date))
+				(org-agenda-format-date "%A %-e %B %Y")
+				(org-agenda-overriding-header "\nАгенда\n")))
+		  ))))
+
+	  (require 'org-indent)
+	  (require 'org-faces)
+	  (require 'org-tempo)
+	  ;; This is needed as of Org 9.2
+	  (require 'org-tempo)
+	  (require 'org-protocol)
+
+	  (add-to-list 'org-structure-template-alist '("sh" . "src sh"))
+	  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+	  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+	  (add-to-list 'org-structure-template-alist '("go" . "src go"))
+	  (add-to-list 'org-structure-template-alist '("yaml" . "src yaml"))
+	  (add-to-list 'org-structure-template-alist '("json" . "src json"))
+
+	  (setq org-todo-repeat-to-state "REPEATING")
+	  (setq org-refile-targets (quote ((nil :maxlevel . 9)
+					   (org-agenda-files :maxlevel . 9))))
+	  (setq org-agenda-files (list "~/Documents/Org/Inbox.org"
+				       "~/Documents/Org/GTD.org"
+				       "~/Documents/Org/Work.org"
+				       "~/Documents/Org/habits.org"))
+
+	  (setq org-capture-templates
+		'(("w"
+		    "Default template"
+		    entry
+		    (file+headline "~/Documents/Org/references.org" "References")
+		    "** %:description\n\n  %:link \n\n %:initial"
+		    :empty-lines 1
+		    :kill-client t)
+		  ("p"
+		    "Browser capture selected text"
+		    entry
+		    (file+headline "~/Documents/Org/references.org" "References")
+		    "** %:description\n\n  %:link \n\n %:initial \n\n "
+		    :empty-lines 1
+		    :kill-client t)
+		  ("L"
+		    "Browser capture page"
+		    entry
+		    (file+headline "~/Documents/Org/references.org" "References")
+		    "** %:link \n\n "
+		    :empty-lines 1
+		    :kill-client t)
+		  ("e" "Drill card Russian <-> English"
+		    entry
+		    (file+headline "~/Documents/Org/drill/en-rus.org" "Cards")
+		    (file "~/.emacs-config/drill-en-rus.orgcptmpl"))
+		  ("i" "Inbox")
+		  ("iy" "Inbox YouTube" entry
+		   (file "~/Documents/Org/Inbox.org")
+		   "* Посмотреть видео [[%^{YouTube Link}][%^{YouTube Title}]] :youtube:\n %?")
+		  ("ia" "Inbox Article" entry
+		   (file "~/Documents/Org/Inbox.org")
+		   "* Прочитать статью [[%^{Article Link}][%^{Article Title}]] :article:\n %^{Description} %?")))
+
+	  (setq org-agenda-start-with-log-mode t)
+	  (setq org-log-done 'time)
+	  (setq org-log-into-drawer t)
+	  (setq org-agenda-include-diary t)
+	  (setq org-agenda-skip-deadline-if-done t)
+	  (setq org-agenda-skip-scheduled-if-done t)
+	  (setq org-agenda-start-on-weekday nil))
+
+    ;; test org-modern
+    (use-package org-superstar
+      :ensure nil
+      :after org
+      :init
+      ;; (setq org-superstar-special-todo-items t)
+      :hook (org-mode . (lambda () (org-superstar-mode 1))))
+
+    (require 'ox-md)
+
+    (use-package emacsql
+      :ensure nil)
+
+    ;; (use-package emacsql-sqlite)
+
+    (defun mz/get-org-roam-back-link (file)
+    (let (link)
+      (when file
+	  (with-current-buffer
+	      (get-file-buffer file)
+	    (org-link-make-string
+	     (concat "id:" (org-entry-get 1 "ID"))
+	     (org-roam-node-title (org-roam-node-from-id (org-entry-get 1 "ID"))))))))
+
+  (use-package org-roam
+    :ensure nil
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "~/Documents/Org/Roam")
+    (org-roam-node-display-template "${title:80} ${tags:60}")
+    (org-roam-capture-templates
+      '(("d" "default" plain "%?" :if-new
+	   (file+head "%<%Y%m%d%H%M%S>.org" "#+TITLE: ${title}\n#+CREATED: %U\n#+LAST_MODIFIED: %U\n#+ROAM_ALIASES: \n#+FILETAGS: ")
+	   :unnarrowed t)
+      ("e" "entry" entry "%i"
+	  :target (file+head
+			"%<%Y%m%d%H%M%S>.org"
+			"#+TITLE: ${title}\n#+CREATED: %U\n#+LAST_MODIFIED: %U\n#+ROAM_ALIASES: \n#+FILETAGS: \n\nsource::%(mz/get-org-roam-back-link (org-capture-get :original-file))\n\n")
+			:unnarrowed t)))
+
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+	     ("C-c n f" . org-roam-node-find)
+	     ("C-c n i" . org-roam-node-insert)
+	     :map org-mode-map
+	     ("C-M-i"   . completion-at-point))
+    :config
+    (org-roam-db-autosync-enable))
+
+  (use-package org-roam-ui
+    :ensure nil
+    :after org-roam
+    :config
+    (setq org-roam-ui-sync-theme t
+	    org-roam-ui-follow t
+	    org-roam-ui-update-on-save t
+	    org-roam-ui-open-on-start t))
+
+  (use-package org-ql
+    :ensure nil)
+
+  (use-package deft
+    :ensure nil
+    :after org-roam
+    :bind
+    ("C-c n d" . deft)
+    :custom
+    (deft-recursive t)
+    (deft-use-filter-string-for-filename t)
+    (deft-default-extension "org")
+    (deft-directory org-roam-directory))
+
+
+  (use-package consult-org-roam
+     :ensure nil
+     :after org-roam
+     :init
+     (require 'consult-org-roam)
+     ;; Activate the minor mode
+     (consult-org-roam-mode 1)
+     :custom
+     ;; Use `ripgrep' for searching with `consult-org-roam-search'
+     (consult-org-roam-grep-func #'consult-ripgrep)
+     ;; Configure a custom narrow key for `consult-buffer'
+     (consult-org-roam-buffer-narrow-key ?r)
+     ;; Display org-roam buffers right after non-org-roam buffers
+     ;; in consult-buffer (and not down at the bottom)
+     (consult-org-roam-buffer-after-buffers t)
+     :config
+     ;; Eventually suppress previewing for certain functions
+     (consult-customize
+      consult-org-roam-forward-links
+      :preview-key "M-.")
+     :bind
+     ;; Define some convenient keybindings as an addition
+     ("C-c n e" . consult-org-roam-file-find)
+     ("C-c n b" . consult-org-roam-backlinks)
+     ("C-c n B" . consult-org-roam-backlinks-recursive)
+     ("C-c n l" . consult-org-roam-forward-links)
+     ("C-c n r" . consult-org-roam-search))
+
+    (provide 'config-org)
+
+#+end_src
+
+
+
+** TODO Разработка ПО
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-development.el :mkdirp yes
+
+(setq display-line-numbers 'relative)
+
+(use-package magit
+  :ensure nil)
+
+(use-package projectile
+  :ensure nil
+  :init
+  (projectile-mode +1)
+  :config
+  (setq projectile-auto-discover nil)
+  (projectile-register-project-type 'dotnet-sln #'projectile-dotnet-project-p
+				    :project-file '("?*.sln")
+				    :compile "dotnet build"
+				    :run "dotnet run"
+				    :test "dotnet test")
+  :custom
+  (projectile-project-root-functions
+   '(projectile-root-marked))
+  :bind (:map projectile-mode-map
+	      ;; ("s-p" . projectile-command-map)
+	      ("C-c p" . projectile-command-map)))
+
+(use-package highlight-indent-guides
+  :ensure nil
+  :custom
+  (highlight-indent-guides-method 'character)
+  (highlight-indent-guides-responsive 'top)
+  (highlight-indent-guides-auto-enabled nil)
+  :hook
+  (prog-mode . highlight-indent-guides-mode))
+
+(use-package yaml-mode
+  :ensure nil
+  :mode "\\.yaml\\'")
+
+(use-package markdown-mode
+  :ensure nil
+  :mode "\\.md\\'"
+  :custom (markdown-header-scaling t))
+
+(use-package vterm
+  :ensure nil
+  :commands vterm
+  :config
+  (setq vterm-max-scrollback 10000))
+
+(use-package elm-mode
+  :ensure nil)
+
+(use-package yasnippet
+  :ensure nil
+  :after (cl-lib)
+  :config (yas-global-mode))
+
+(use-package yasnippet-snippets
+  :after (yasnippet cl-lib))
+
+(use-package elixir-mode
+  :ensure nil)
+
+(use-package dap-mode
+  :ensure nil)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-development.el :mkdirp yes
+(use-package corfu
+  :ensure nil
+  :custom
+  (corfu-cycle t)
+  ;; :hook ((prog-mode . corfu-mode)
+  ;; 	 (shell-mode . corfu-mode)
+  ;; 	 (eshell-mode . corfu-mode))
+  :config
+  (global-corfu-mode 1))
+
+(use-package nerd-icons-corfu
+  :ensure nil
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+(use-package emacs
+  :ensure nil
+  :custom
+  (tab-always-indent 'complete)
+  (text-mode-ispell-word-completion nil)
+  (read-extended-command-predicate #'command-completion-default-include-p))
+
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  :config
+  (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+  ;; Since 29.1, use `dabbrev-ignored-buffer-regexps' on older.
+  (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
+
+;; (use-package company
+;;   :ensure nil
+;;   :bind (:map company-active-map
+;; 	      ("C-n" . company-select-next)
+;; 	      ("C-p" . company-select-previous))
+;;   :config
+;;   (setq company-idle-delay 0.3)
+;;   (global-company-mode t))
+;; or use :hook (elm-mode . company-mode))
+
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-development.el :mkdirp yes
+(use-package lsp-mode
+  :ensure nil
+  :after (dash f ht spinner lv elixir-mode)
+  :init
+  (setq lsp-keymap-prefix "C-c l"
+	lsp-eldoc-render-all t
+	lsp-elm-trace-server t)
+  ;; lsp-enable-file-watchers nil
+  ;; read-process-output-max (* 1024 1024)  ; 1 mb
+  ;; lsp-completion-provider :capf
+  ;; lsp-idle-delay 0.500)
+  (add-to-list 'exec-path "~/.elixir-language-server")
+  ;;  :hook ((elm-mode elixir-mode go-mode haskell-mode) . #'lsp-deferred)
+  :hook ((elm-mode elixir-mode go-mode) . #'lsp-deferred)
+  ;; (elixir-mode . #'lsp-deffered)
+  ;; (java-mode . #'lsp-deferred)
+  ;; (kotlin-mode . #'lsp-deferred)
+  ;; (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
+
+(use-package lsp-ui
+  :ensure nil
+  :after (dash lsp-mode markdown-mode)
+  :commands lsp-ui-mode)
+
+(use-package graphviz-dot-mode
+  :ensure nil
+  :config
+  (setq graphviz-dot-indent-width 4))
+
+(use-package ledger-mode
+  :ensure nil)
+
+(use-package consult-projectile
+  :ensure nil)
+
+(use-package rainbow-delimiters
+  :ensure nil
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package docker
+  :ensure nil
+  :requires (dash docker-tramp json-mode s tablist transient)
+  :commands docker)
+
+(use-package dockerfile-mode
+  :ensure nil
+  :mode "Dockerfile\\'")
+
+(use-package docker-compose-mode
+  :ensure nil
+  :requires (dash yaml-mode)
+  :mode "docker-compose\\'")
+
+(use-package eldoc-box
+  :ensure nil
+  :custom
+  (eldoc-box-max-pixel-width 850))
+
+(use-package eglot
+  :ensure nil
+  :config
+  (add-hook 'haskell-mode-hook 'eglot-ensure)
+  :config
+  (setq-default eglot-workspace-configuration
+                '((haskell
+                   (plugin
+                    (stan
+                     (globalOn . :json-false))))))  ;; disable stan
+  :custom
+  (eglot-autoshutdown t)
+  (eglot-confirm-server-initiated-edits nil))
+
+;; (use-package eglot
+;;   :ensure nil
+;;   :preface
+;;   (defun mz/eglot-eldoc ()
+;;     (setq eldoc-documentation-strategy
+;; 	  'eldoc-documentation-compose-eagerly))
+;;   :hook ((eglot-managed-mode . mz/eglot-eldoc)
+;; 	 (haskell-mode . eglot-ensure))
+;;   :custom
+;;   (eglot-autoshutdown t)
+;;   )
+
+;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+
+
+(use-package haskell-mode
+  :ensure nil
+  :mode "\\.hs\\'"
+  )
+
+(use-package lua-mode
+  :ensure nil
+  :mode "\\.lua$"
+  :init
+  (setq lua-indent-level 4))
+
+(provide 'config-development)
+#+end_src
+
+
+
+** TODO Установка интеграции
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-integrations.el :mkdirp yes
+(let* ((winHomeDir
+	(string-replace
+	 "\\"
+	 "\\\\"
+	 (string-trim-right (shell-command-to-string "powershell.exe -NoProfile -NonInteractive -Command \"\\$Env:UserProfile\""))))
+       (wslHomeDir
+	(string-trim-right (shell-command-to-string (concat "wslpath -u -a " winHomeDir))))
+       (browserPath
+	(concat wslHomeDir "/AppData/Local/Yandex/YandexBrowser/Application/browser.exe")))
+  (setenv "BROWSER" browserPath))
+
+(setq browse-url-generic-program
+      (executable-find (getenv "BROWSER"))
+      browse-url-browser-function 'browse-url-generic)
+
+(provide 'config-integrations)
+
+#+end_src
+
+** TODO Начальний экран
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-dashboard.el :mkdirp yes
+
+(use-package dashboard
+  :ensure nil)
+  ;; :after (page-break-lines)
+  ;; :custom
+  ;; (dashboard-startup-banner nil)
+  ;; (dashboard-set-navigator t)
+  ;; (dashboard-set-heading-icons t)
+  ;; (dashboard-set-file-icons t)
+  ;; (dashboard-center-content t)
+  ;; (dashboard-set-init-info t)
+  ;; (dashboard-match-agenda-entry "@habit")
+  ;; ;; (dashboard-filter-agenda-entry 'dashboard-no-filter-agenda)
+  ;; (dashboard-agenda-release-buffers t)
+  ;; (dashboard-week-agenda t)
+  ;; (dashboard-items '((recents  . 10)
+  ;;                    (projects . 5)
+  ;;                    (bookmarks . 5)
+  ;; 		     (agenda . 20)))
+  ;; :custom-face
+  ;; (dashboard-heading-face ((t (:weight bold))))
+  ;; :config
+  ;; (dashboard-setup-startup-hook)
+  ;; (defun mz/home ()
+  ;;   "Switch to home (dashboard) buffer."
+  ;;   (interactive)
+  ;;   (switch-to-buffer "*dashboard*"))
+  ;; :hook
+  ;; (dashboard-mode . (lambda () (setq cursor-type nil)))
+  ;; (dashboard-mode . (lambda () (face-remap-add-relative 'hl-line :weight 'bold))))
+
+(use-package esup
+  :ensure nil
+  :commands esup)
+
+  (provide 'config-dashboard)
+
+#+end_src
+
+** TODO Настройка файлового менеджера
+
+Установка иконок из пакета ~nerd-icons~ для отображения в режиме ~dired~.
+Используется пакет https://github.com/rainstormstudio/nerd-icons-dired
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-dired.el :mkdirp yes
+(use-package nerd-icons-dired
+  :ensure nil
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-dired.el :mkdirp yes
+(use-package dired-hacks-utils
+  :ensure nil)
+
+(use-package dired-rainbow
+  :ensure nil
+  :config
+  ;; (progn
+  ;;   (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+  ;;   (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+  ;;   (dired-rainbow-define xml "#672a1e" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata" "config"))
+  ;;   (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+  ;;   (dired-rainbow-define markdown "#ff0761" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+  ;;   (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+  ;;   (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+  ;;   (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+  ;;   (dired-rainbow-define log "#c17d11" ("log"))
+  ;;   (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim" "cmd" "ps1"))
+  ;;   (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js" "fsx" "exs"))
+  ;;   (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" "java" "ex" ))
+  ;;   (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+  ;;   (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+  ;;   (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+  ;;   (dired-rainbow-define encrypted "#9630ce" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem")) ;;
+  ;;   (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+  ;;   (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+  ;;   (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+  ;;   (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")
+  )
+(provide 'config-dired)
+#+end_src
+
+** TODO Развлечения
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/config-entertainment.el :mkdirp yes
+
+(use-package 2048-game
+  :ensure nil
+  :commands 2048-game)
+
+(use-package speed-type
+  :ensure nil)
+
+(provide 'config-entertainment)
+
+#+end_src
+
+** Подключение всех модулей
+Последние действие это добавление всех модулей в файл загрузки.
+Добавляется модуль настройки календаря.
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-calendar)
+
+#+end_src
+
+Добавляется модуль настроек манипулирования файлами
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-file)
+
+#+end_src
+
+Добавляется модуль настроек ввода
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-input)
+
+#+end_src
+
+Добавляется модуль настроек буфера
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-buffer)
+
+#+end_src
+
+Добавляется модуль настроек минибуфера
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+  (require 'config-minibuffer)
+
+#+end_src
+
+Добавляется модуль настроек строки состояния
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-statusbar)
+
+#+end_src
+
+Добавляется модуль настроек поиска
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-search)
+
+#+end_src
+
+Добавляется модуль цветовых тем
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-themes)
+
+#+end_src
+
+Добавляется модуль Org
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-org)
+
+#+end_src
+
+Добавляется модуль разработки ПО
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-development)
+
+#+end_src
+
+Добавляется модуль настройки интеграций
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-integrations)
+
+#+end_src
+
+Добавляется модуль настройки начальной доски
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-dashboard)
+
+#+end_src
+
+Добавляется модуль настройки файлового менеджера
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-dired)
+
+#+end_src
+
+Добавляется модуль развлечений
+
+#+begin_src emacs-lisp :tangle ~/.config/emacs-guix/init.el :mkdirp yes
+
+(require 'config-entertainment)
+
+#+end_src
